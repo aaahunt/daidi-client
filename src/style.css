@@ -1,6 +1,10 @@
 main {
   height: 100vh;
 }
+#main-nav,
+.navbar {
+  z-index: 9;
+}
 #board {
   background: url("./images/felt.png"), rgb(16, 110, 16);
   min-height: 250px;

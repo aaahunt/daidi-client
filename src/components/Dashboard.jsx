@@ -55,28 +55,32 @@ class Dashboard extends React.Component {
     let socketStatus = this.socket.connected ? "online" : "offline"
     return (
       <Container>
-        <h1>Dashboard</h1>
-        <p>
-          Welcome, {this.state.username}
-          <img
-            src={`${socketStatus}.svg`}
-            alt={socketStatus}
-            title={socketStatus}
-          />
-        </p>
+        <div className="p-5 mb-4">
+          <div className="container-fluid py-5">
+            <h1 className="display-5 fw-bold">Dashboard</h1>
+            <p>
+              Welcome, {this.state.username}
+              <img
+                src={`${socketStatus}.svg`}
+                alt={socketStatus}
+                title={socketStatus}
+              />
+            </p>
 
-        <h2>Online Players</h2>
-        <OnlinePlayers
-          users={this.state.onlineUsers}
-          handleChallenge={this.props.handleChallenge}
-          id={this.state.id}
-        />
+            <h2>Online Players</h2>
+            <OnlinePlayers
+              users={this.state.onlineUsers}
+              handleChallenge={this.props.handleChallenge}
+              id={this.state.id}
+            />
 
-        <h2>Previous games</h2>
-        <GameList
-          games={this.state.games}
-          handleChallenge={this.props.handleChallenge}
-        />
+            <h2>Previous games</h2>
+            <GameList
+              games={this.state.games}
+              handleChallenge={this.props.handleChallenge}
+            />
+          </div>
+        </div>
       </Container>
     )
   }

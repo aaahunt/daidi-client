@@ -8,29 +8,33 @@ const Login = (props) => {
   const { error } = props.state
 
   return (
-    <Container className="mt-3">
-      <h1>Login</h1>
-      <Form onSubmit={(e) => props.handleSubmit(e)}>
-        <Form.Control
-          type="text"
-          id="username"
-          placeholder="username"
-          autoComplete="off"
-          required
-          className="mb-1"
-        />
-        <Form.Control
-          type="password"
-          id="password"
-          placeholder="password"
-          required
-          className="mb-1"
-        />
-        <Button variant="primary" type="submit">
-          Login
-        </Button>
-      </Form>
-      {error && <Alert variant="danger">{error}</Alert>}
+    <Container>
+      <div className="p-5 mb-4">
+        <div className="container-fluid py-5">
+          <h1 className="display-5 fw-bold">Login</h1>
+          <Form onSubmit={(e) => props.handleSubmit(e)}>
+            <Form.Control
+              type="text"
+              id="username"
+              placeholder="username"
+              autoComplete="off"
+              required
+              className="mb-1"
+            />
+            <Form.Control
+              type="password"
+              id="password"
+              placeholder="password"
+              required
+              className="mb-1"
+            />
+            <Button variant="primary" type="submit">
+              Login
+            </Button>
+          </Form>
+          {error && <Alert variant="danger">{error}</Alert>}
+        </div>
+      </div>
     </Container>
   )
 }

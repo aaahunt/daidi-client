@@ -29,46 +29,51 @@ const Register = (props) => {
   }
 
   return (
-    <Container className="mt-3">
-      <h1>Register</h1>
-      <p>Password must contain at least:</p>
-      <ul>
-        <li>8 characters</li>
-        <li>1 uppercase letter</li>
-        <li>1 lowercase letter</li>
-        <li>1 number</li>
-      </ul>
+    <Container>
+      <div className="p-5 mb-4">
+        <div className="container-fluid py-5">
+          <h1 className="display-5 fw-bold">Register</h1>
 
-      <Form onSubmit={(e) => props.handleSubmit(e)}>
-        <Form.Control
-          type="text"
-          name="username"
-          placeholder="username"
-          autoComplete="off"
-          required
-          className="mb-1"
-        />
-        <Form.Control
-          type="password"
-          name="password"
-          id="password"
-          placeholder="password"
-          onChange={checkPasswordStrength}
-          required
-        />
-        <div>
-          <progress
-            style={{ width: "100%" }}
-            id="passwordStrength"
-            value="0"
-            max="4"
-          ></progress>
+          <p>Password must contain at least:</p>
+          <ul>
+            <li>8 characters</li>
+            <li>1 uppercase letter</li>
+            <li>1 lowercase letter</li>
+            <li>1 number</li>
+          </ul>
+
+          <Form onSubmit={(e) => props.handleSubmit(e)}>
+            <Form.Control
+              type="text"
+              name="username"
+              placeholder="username"
+              autoComplete="off"
+              required
+              className="mb-1"
+            />
+            <Form.Control
+              type="password"
+              name="password"
+              id="password"
+              placeholder="password"
+              onChange={checkPasswordStrength}
+              required
+            />
+            <div>
+              <progress
+                style={{ width: "100%" }}
+                id="passwordStrength"
+                value="0"
+                max="4"
+              ></progress>
+            </div>
+            <Button variant="primary" type="submit">
+              Register
+            </Button>
+          </Form>
+          {error && <Alert variant="danger">{error}</Alert>}
         </div>
-        <Button variant="primary" type="submit">
-          Register
-        </Button>
-      </Form>
-      {error && <Alert variant="danger">{error}</Alert>}
+      </div>
     </Container>
   )
 }

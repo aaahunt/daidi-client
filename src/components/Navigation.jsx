@@ -20,6 +20,7 @@ import {
 
 const Navigation = (props) => {
   const [showChallenge, setShowChallenge] = useState(false)
+  const [expanded, setExpanded] = useState(false)
 
   function decline() {
     setShowChallenge(false)
@@ -30,11 +31,23 @@ const Navigation = (props) => {
     props.handleAccept()
   }
 
+  function logout() {
+    setExpanded(false)
+    props.handleLogout()
+  }
+
   // if ID is set, must be logged in - show logged in Nav
   if (!(props.id === null))
     return (
       <>
-        <Navbar collapseOnSelect expand="md" bg="dark" variant="dark" style={{zIndex: 10}}>
+        <Navbar
+          expanded={expanded}
+          collapseOnSelect
+          expand="md"
+          bg="dark"
+          variant="dark"
+          id="main-nav"
+        >
           <Container>
             <Navbar.Brand>
               <Link to={HOME_URL}>
@@ -46,13 +59,24 @@ const Navigation = (props) => {
                 />
               </Link>
             </Navbar.Brand>
-            <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+            <Navbar.Toggle
+              aria-controls="responsive-navbar-nav"
+              onClick={() => setExpanded(expanded ? false : "expanded")}
+            />
             <Navbar.Collapse id="responsive-navbar-nav">
               <Nav className="me-auto">
-                <Link to={DASHBOARD_URL} className="nav-link">
+                <Link
+                  to={DASHBOARD_URL}
+                  className="nav-link"
+                  onClick={() => setExpanded(false)}
+                >
                   Dashboard
                 </Link>
-                <Link to={GAME_URL} className="nav-link">
+                <Link
+                  to={GAME_URL}
+                  className="nav-link"
+                  onClick={() => setExpanded(false)}
+                >
                   Game
                 </Link>
               </Nav>
@@ -65,7 +89,7 @@ const Navigation = (props) => {
                     Challenge offer...
                   </Button>
                 )}
-                <Nav.Link onClick={props.handleLogout}>Logout</Nav.Link>
+                <Nav.Link onClick={logout}>Logout</Nav.Link>
               </Nav>
             </Navbar.Collapse>
           </Container>
@@ -96,26 +120,51 @@ const Navigation = (props) => {
     )
   else
     return (
-      <Navbar collapseOnSelect expand="md" bg="dark" variant="dark">
+      <Navbar
+        collapseOnSelect
+        expand="md"
+        bg="dark"
+        variant="dark"
+        expanded={expanded}
+      >
         <Container>
           <Navbar.Brand>
-            <Link to={HOME_URL}>
+            <Link to={HOME_URL} onClick={() => setExpanded(false)}>
               <img src="header-logo.svg" alt="Dai Di" width="70" height="70" />
             </Link>
           </Navbar.Brand>
-          <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+          <Navbar.Toggle
+            aria-controls="responsive-navbar-nav"
+            onClick={() => setExpanded(expanded ? false : "expanded")}
+          />
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
-              <Link to={HOME_URL} className="nav-link">
+              <Link
+                to={HOME_URL}
+                className="nav-link"
+                onClick={() => setExpanded(false)}
+              >
                 Home
               </Link>
-              <Link to={LOGIN_URL} className="nav-link">
+              <Link
+                to={LOGIN_URL}
+                className="nav-link"
+                onClick={() => setExpanded(false)}
+              >
                 Login
               </Link>
-              <Link to={REGISTER_URL} className="nav-link">
+              <Link
+                to={REGISTER_URL}
+                className="nav-link"
+                onClick={() => setExpanded(false)}
+              >
                 Register
               </Link>
-              <Link to={RULES_URL} className="nav-link">
+              <Link
+                to={RULES_URL}
+                className="nav-link"
+                onClick={() => setExpanded(false)}
+              >
                 Rules
               </Link>
             </Nav>

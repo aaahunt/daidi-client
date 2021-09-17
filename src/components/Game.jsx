@@ -8,9 +8,6 @@ import Opponent from "./Opponent"
 import Player from "./Player"
 import Modals from "./Modals"
 
-// Bootstrap Components
-import Container from "react-bootstrap/Container"
-
 // Config vars
 import { SocketContext } from "../context/socket"
 import { DASHBOARD_URL, SERVER_URL } from "../config"
@@ -57,7 +54,6 @@ class Game extends React.Component {
       })
     }
 
-    console.log("location", this.props.location.state)
     // Retrieve game state from cookies upon mount
     // const storedState = sessionStorage.getItem("game")
     // this.setState(JSON.parse(storedState))
@@ -87,9 +83,11 @@ class Game extends React.Component {
   render() {
     if (!this.state.opponent)
       return (
-        <Container>
-          <h1>No Game in progress</h1>
-        </Container>
+        <section className="d-flex justify-content-center position-absolute top-50 start-50 translate-middle">
+          <div className="text-center p-3 rounded-0">
+            <h1>No Game in progress</h1>
+          </div>
+        </section>
       )
 
     return (

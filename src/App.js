@@ -37,10 +37,6 @@ class App extends React.Component {
     // Upon component refresh fetch user ID and challenge from session storage
     this.setStateUsingCookies()
 
-    this.socket.onAny((eventName, ...args) => {
-      console.log("socketEvent:", eventName, args)
-    })
-
     // Handle incoming challenge
     this.socket.on("incoming challenge", this.handleIncomingChallenge)
 
@@ -82,7 +78,6 @@ class App extends React.Component {
     axios
       .post(SERVER_URL + "/register", { username, password })
       .then((res) => {
-        console.log("Successfully registered")
         sessionStorage.setItem("user", res.data.user._id)
         this.setState({ username, id: res.data.user._id, error: null }, () => {
           this.props.history.push({
@@ -216,7 +211,6 @@ class App extends React.Component {
   // Use response from server (hands and first player) to begin a new game
   startGame = (response) => {
     this.removeChallenge()
-    console.log(response)
     this.props.history.push({
       pathname: GAME_URL,
       state: response,
