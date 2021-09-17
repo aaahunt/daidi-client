@@ -34,7 +34,7 @@ const Navigation = (props) => {
   if (!(props.id === null))
     return (
       <>
-        <Navbar collapseOnSelect expand="md" bg="dark" variant="dark">
+        <Navbar collapseOnSelect expand="md" bg="dark" variant="dark" style={{zIndex: 10}}>
           <Container>
             <Navbar.Brand>
               <Link to={HOME_URL}>
