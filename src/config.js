@@ -8,6 +8,6 @@ module.exports = {
   SERVER_URL:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
       ? "http://localhost:4000"
-      : "https://daidi-server.herokuapp.com/",
+      : "https://daidi-server.herokuapp.com",
   PROCESS: process.env,
 }
