@@ -1,0 +1,89 @@
+main {
+  height: 100vh;
+}
+#board {
+  background: url("./images/felt.png"), rgb(16, 110, 16);
+  min-height: 250px;
+}
+#actions {
+  background: url("./images/metal.png"), #212529;
+}
+#opponent {
+  background: url("./images/metal.png"), #212529;
+}
+#waiting {
+  width: 90vw;
+  max-width: 600px;
+}
+.playing-card {
+  border: 1px solid grey;
+  border-radius: 5px;
+  margin-left: -15px;
+  min-width: 48px;
+  max-width: 115px;
+  width: 7.5vw;
+}
+.board-card {
+  border: 1px solid grey;
+  border-radius: 5px;
+  min-width: 60px;
+  max-width: 115px;
+  width: 9vw;
+  margin: 20px 1px;
+  box-shadow: 3px 3px 6px 0px #00000029;
+}
+.opponent-card:first-of-type {
+  margin-left: 0;
+}
+.opponent-card {
+  --size: 10vw;
+  --max-size: 150px;
+  height: calc(var(--size) * 1);
+  width: calc(var(--size) * 0.75);
+  max-height: calc(var(--max-size) * 1);
+  max-width: calc(var(--max-size) * 0.75);
+
+  margin-left: calc(var(--size) * -0.3);
+  border: 3px solid white;
+  box-shadow: inset 0px 0px 0px 10px #7d7cad;
+  background: #9291ad;
+  border-radius: 6px;
+}
+.minor-buttons {
+  width: 150px;
+}
+.selected {
+  margin-top: -50px;
+  border-color: green;
+}
+.waiting {
+  width: 100%;
+  text-align: right;
+}
+img {
+  user-select: none;
+}
+
+.loading:after {
+  content: "\00a0\00a0\00a0";
+  animation: progress-ellipsis 2s infinite;
+}
+
+#onlineUsers option {
+  display: block;
+}
+
+@keyframes progress-ellipsis {
+  0% {
+    content: "\00a0\00a0\00a0";
+  }
+  30% {
+    content: ".\00a0\00a0";
+  }
+  60% {
+    content: "..\00a0";
+  }
+  90% {
+    content: "...";
+  }
+}
