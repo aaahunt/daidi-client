@@ -4,8 +4,6 @@ import { Link } from "react-router-dom"
 // Bootstrap Components
 import Navbar from "react-bootstrap/Navbar"
 import Nav from "react-bootstrap/Nav"
-import Modal from "react-bootstrap/Modal"
-import Button from "react-bootstrap/Button"
 import Container from "react-bootstrap/Container"
 
 // Config vars
@@ -19,22 +17,7 @@ import {
 } from "../config"
 
 const Navigation = (props) => {
-  const [showChallenge, setShowChallenge] = useState(false)
   const [expanded, setExpanded] = useState(false)
-
-  function decline() {
-    setShowChallenge(false)
-    props.handleDecline()
-  }
-  function accept() {
-    setShowChallenge(false)
-    props.handleAccept()
-  }
-
-  function logout() {
-    setExpanded(false)
-    props.handleLogout()
-  }
 
   // if ID is set, must be logged in - show logged in Nav
   if (!(props.id === null))
@@ -81,41 +64,11 @@ const Navigation = (props) => {
                 </Link>
               </Nav>
               <Nav>
-                {props.challenge && (
-                  <Button
-                    variant="warning"
-                    onClick={() => setShowChallenge(true)}
-                  >
-                    Challenge offer...
-                  </Button>
-                )}
-                <Nav.Link onClick={logout}>Logout</Nav.Link>
+                <Nav.Link onClick={props.handleLogout}>Logout</Nav.Link>
               </Nav>
             </Navbar.Collapse>
           </Container>
         </Navbar>
-
-        <Modal show={showChallenge} onHide={() => setShowChallenge(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Incoming challenge</Modal.Title>
-          </Modal.Header>
-
-          <Modal.Body>
-            <p>
-              {props.challenge && props.challenge.username} has offered you a
-              challenge. Would you like to play?
-            </p>
-          </Modal.Body>
-
-          <Modal.Footer>
-            <Button onClick={decline} variant="secondary">
-              No
-            </Button>
-            <Button onClick={accept} variant="primary">
-              Yes
-            </Button>
-          </Modal.Footer>
-        </Modal>
       </>
     )
   else

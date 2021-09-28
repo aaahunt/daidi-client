@@ -7,7 +7,7 @@ main {
 }
 #board {
   background: url("./images/felt.png"), rgb(16, 110, 16);
-  min-height: 250px;
+  min-height: 100px;
 }
 #actions {
   background: url("./images/metal.png"), #212529;
@@ -71,10 +71,6 @@ img {
 .loading:after {
   content: "\00a0\00a0\00a0";
   animation: progress-ellipsis 2s infinite;
-}
-
-#onlineUsers option {
-  display: block;
 }
 
 @keyframes progress-ellipsis {

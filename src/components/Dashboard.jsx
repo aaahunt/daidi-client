@@ -5,10 +5,13 @@ import axios from "axios"
 import { SERVER_URL } from "../config"
 import { SocketContext } from "../context/socket"
 
+// Components
+import Notifications from "./notifications/Notifications"
+import Online from "./Online"
+
 // Bootstrap components
-import Form from "react-bootstrap/Form"
 import Container from "react-bootstrap/Container"
-import Button from "react-bootstrap/Button"
+import ListGroup from "react-bootstrap/ListGroup"
 
 class Dashboard extends React.Component {
   static contextType = SocketContext
@@ -18,43 +21,72 @@ class Dashboard extends React.Component {
     ...this.props.state,
     games: null,
     onlineUsers: null,
+    showChallenge: false,
   }
 
   componentDidMount() {
-    let id = this.state.id
+    // Fetch list of previous games
+    let id = this.props.state.id
     axios.get(SERVER_URL + "/games?id=" + id).then((res) => {
       this.setState({ games: res.data })
     })
 
-    this.socket.on("users", (users) => {
-      let onlineUsers = users.filter((a) => a.userID !== id)
-      onlineUsers = onlineUsers.sort((a, b) => {
-        return a.username - b.username
-      })
-      if (onlineUsers.length > 0) this.setState({ onlineUsers })
-    })
-
-    this.socket.on("user connected", (user) => {
-      if (this.state.onlineUsers) {
-        let userExists = this.state.onlineUsers.find(
-          (el) => el.userID === user.userID
-        )
-        if (userExists) return
-      }
-      this.setState({
-        onlineUsers: [...(this.state.onlineUsers || []), user],
-      })
-    })
+    // Add socket listeners
+    this.socket.on("users", this.handleUserList)
+    this.socket.on("user connected", this.handleNewUser)
   }
 
   componentWillUnmount() {
     this.socket.offAny()
   }
 
+  handleUserList = (users) => {
+    let id = this.props.state.id
+
+    // Remove us
+    let onlineUsers = users.filter((each) => each.userID !== id)
+
+    // Check for duplicates
+    onlineUsers = Array.from(new Set(onlineUsers.map((a) => a.userID))).map(
+      (id) => {
+        return onlineUsers.find((a) => a.userID === id)
+      }
+    )
+    // Sort alphabetically
+    onlineUsers = onlineUsers.sort((a, b) => {
+      return a.username - b.username
+    })
+    if (onlineUsers.length > 0) this.setState({ onlineUsers })
+  }
+
+  handleNewUser = (user) => {
+    let userExists
+    if (this.state.onlineUsers) {
+      userExists = this.state.onlineUsers.find(
+        (each) => each.userID === user.userID
+      )
+    }
+    if (userExists) return
+    this.setState({
+      onlineUsers: [...(this.state.onlineUsers || []), user],
+    })
+  }
+
   render() {
     let socketStatus = this.socket.connected ? "online" : "offline"
     return (
-      <Container>
+      <Container className="position-relative">
+        <Notifications
+          message={this.props.state.message}
+          clearMessage={this.props.clearMessage}
+          challenge={this.props.state.challenge}
+          acceptChallenge={this.props.acceptChallenge}
+          declineChallenge={this.props.declineChallenge}
+        >
+          {this.props.state.challenge && this.props.state.challenge.username}{" "}
+          has challenged you. What do you say?
+        </Notifications>
+
         <div className="p-5 mb-4">
           <div className="container-fluid py-5">
             <h1 className="display-5 fw-bold">Dashboard</h1>
@@ -67,18 +99,19 @@ class Dashboard extends React.Component {
               />
             </p>
 
-            <h2>Online Players</h2>
-            <OnlinePlayers
+            <Online
               users={this.state.onlineUsers}
               handleChallenge={this.props.handleChallenge}
               id={this.state.id}
             />
 
-            <h2>Previous games</h2>
-            <GameList
-              games={this.state.games}
-              handleChallenge={this.props.handleChallenge}
-            />
+            <h2>Previous Games</h2>
+            <ListGroup>
+              <GameList
+                games={this.state.games}
+                handleChallenge={this.props.handleChallenge}
+              />
+            </ListGroup>
           </div>
         </div>
       </Container>
@@ -87,48 +120,15 @@ class Dashboard extends React.Component {
 }
 
 const GameList = ({ games, handleChallenge }) => {
-  if (!games) return <p>No active games</p>
+  if (!games) return <p>You haven't played any games yet.</p>
   return games.map((game) => (
-    <div key={game.opponent_id}>
-      {game.opponent_name} ({game.opponent_score} : {game.our_score}){" "}
-      <button
-        className="btn btn-primary"
-        onClick={() => handleChallenge(game.opponent_id)}
-      >
-        Challenge
-      </button>
-    </div>
+    <ListGroup.Item
+      key={game.opponent_id}
+      variant={game.our_score > game.opponent_score ? "success" : "danger"}
+    >
+      {game.opponent_name} ({game.opponent_score}) - ({game.our_score})
+    </ListGroup.Item>
   ))
-}
-
-const OnlinePlayers = ({ users, handleChallenge, id }) => {
-  if (!users) return <p>No online users</p>
-  users = users.filter((user) => user.userID !== id)
-
-  // Making sure we're not the only one online
-  if (users.length < 1)
-    return <p>You're the only person online! You can't play with yourself.</p>
-
-  const options = users.map((user) => (
-    <option key={user.userID} value={user.userID}>
-      {user.username}
-    </option>
-  ))
-  return (
-    <Form id="onlineUsers">
-      <Form.Select id="userToChallenge" htmlSize="8">
-        {options}
-      </Form.Select>
-      <Button
-        variant="primary"
-        type="submit"
-        className="mt-1"
-        onClick={handleChallenge}
-      >
-        Challenge
-      </Button>
-    </Form>
-  )
 }
 
 export default Dashboard

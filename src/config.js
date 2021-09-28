@@ -7,7 +7,7 @@ module.exports = {
   RULES_URL: "/rules",
   SERVER_URL:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
-      ? "http://localhost:4000"
+      ? "http://192.168.0.50:4000"
       : "https://daidi-server.herokuapp.com",
   PROCESS: process.env,
 }

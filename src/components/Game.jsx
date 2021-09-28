@@ -6,7 +6,7 @@ import React from "react"
 import Board from "./Board"
 import Opponent from "./Opponent"
 import Player from "./Player"
-import Modals from "./Modals"
+import Modals from "./notifications/Modals"
 
 // Config vars
 import { SocketContext } from "../context/socket"
@@ -192,7 +192,7 @@ class Game extends React.Component {
   }
 
   handleResignation = () => {
-    // How many points did we gain? Depends on how many cards opponent has left
+    // How many points did  we gain? Depends on how many cards opponent has left
     let numCards = this.state.opponent.cards
     let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
 
@@ -339,6 +339,7 @@ class Game extends React.Component {
           opponent: {
             ...prevState.opponent,
             score: this.state.opponent.score,
+            cards: 13,
           },
         }))
       })

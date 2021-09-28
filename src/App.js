@@ -23,6 +23,7 @@ const initState = {
   opponent: null,
   error: null,
   challenge: null,
+  message: null,
 }
 
 class App extends React.Component {
@@ -45,7 +46,12 @@ class App extends React.Component {
 
     // If challenge is declined, inform the challenger
     this.socket.on("declined", () => {
-      alert("Your opponent declined your challenge.")
+      this.setState({
+        message: {
+          header: "Decline",
+          body: "Your opponent declined your challenge.",
+        },
+      })
     })
 
     // If the server goes down, log us out
@@ -177,14 +183,23 @@ class App extends React.Component {
   }
 
   // Handle a challenge offer to ID
-  challengeUser = () => {
-    const id = document.getElementById("userToChallenge").value
+  challengeUser = (id) => {
     this.socket.emit("challenge", id, (response) => {
       if (response === "offline") {
-        alert("That user appears to be offline. Please try again.")
-        return
+        this.setState({
+          message: {
+            header: "Error",
+            body: "That user appears to be offline. Please try again.",
+          },
+        })
+      } else {
+        this.setState({
+          message: {
+            header: "Success",
+            body: "Challenge sent.",
+          },
+        })
       }
-      alert("Challenge sent.")
     })
   }
 
@@ -208,6 +223,11 @@ class App extends React.Component {
     })
   }
 
+  // Clear message box
+  clearMessage = () => {
+    this.setState({ message: null })
+  }
+
   // Use response from server (hands and first player) to begin a new game
   startGame = (response) => {
     this.removeChallenge()
@@ -227,13 +247,13 @@ class App extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <Navigation
-          {...this.state}
-          {...this.props}
-          handleLogout={this.userLogout}
-          handleDecline={this.declineChallenge}
-          handleAccept={this.acceptChallenge}
-        />
+        {this.props.location.pathname !== "/play" && (
+          <Navigation
+            {...this.state}
+            {...this.props}
+            handleLogout={this.userLogout}
+          />
+        )}
         <Switch>
           <Route exact path="/">
             <Home {...this.props} state={this.state} />
@@ -275,6 +295,9 @@ class App extends React.Component {
                 {...this.props}
                 state={this.state}
                 handleChallenge={this.challengeUser}
+                acceptChallenge={this.acceptChallenge}
+                declineChallenge={this.declineChallenge}
+                clearMessage={this.clearMessage}
               />
             )}
           </Route>
