@@ -1,6 +1,10 @@
+import Emojis from "./notifications/Emojis"
+
 const Player = (props) => {
   return (
     <div id="actions" className="players-cards bg-dark p-2">
+      <Emojis opponent={props.opponent.id} />
+
       <h3 className="p-2">
         {props.activePlayer === props.playerNumber ? (
           <span className="badge bg-success">Your turn</span>

@@ -19,6 +19,8 @@ const initState = {
   sortOrder: "rank",
   board: null,
   winner: null,
+  error: null,
+  emoji: null,
   // For modals
   showRematch: false,
   showOppLeft: false,
@@ -66,6 +68,7 @@ class Game extends React.Component {
     this.socket.on("resignation", this.handleResignation)
     this.socket.on("rematch", this.handleRematchOffer)
     this.socket.on("accepted", this.handleRematchAccepted)
+    this.socket.on("emoji", this.handleEmoji)
   }
 
   componentDidUpdate() {
@@ -92,7 +95,11 @@ class Game extends React.Component {
 
     return (
       <main className="d-grid text-center">
-        <Opponent {...this.state.opponent} />
+        <Opponent
+          {...this.state.opponent}
+          emoji={this.state.emoji}
+          clearEmoji={this.clearEmoji}
+        />
         <Board board={this.state.board} error={this.state.error} />
 
         <Player
@@ -115,6 +122,14 @@ class Game extends React.Component {
         />
       </main>
     )
+  }
+
+  handleEmoji = (emoji) => {
+    this.setState({ emoji })
+  }
+
+  clearEmoji = () => {
+    this.setState({ emoji: null })
   }
 
   resign = () => {
@@ -144,6 +159,7 @@ class Game extends React.Component {
     sessionStorage.removeItem("game")
     this.setState(initState)
     this.props.location.state = null
+    this.props.history.push(DASHBOARD_URL)
   }
 
   handleOpponentPlay = (hand) => {
@@ -154,6 +170,7 @@ class Game extends React.Component {
       opponent: {
         ...prevState.opponent,
         cards: this.state.opponent.cards - hand.length,
+        passed: false,
       },
       error: null,
     }))
@@ -225,7 +242,7 @@ class Game extends React.Component {
   }
 
   passTurn = () => {
-    // Emit our hand to opponent, if emit unsuccessful, we must win by default
+    // Emit our action to opponent, if emit unsuccessful, we must win by default
     this.socket.emit(
       "action",
       "pass",
@@ -245,6 +262,10 @@ class Game extends React.Component {
       board: null,
       activePlayer: this.state.activePlayer === 1 ? 2 : 1,
       error: null,
+      opponent: {
+        ...prevState.opponent,
+        passed: false,
+      },
     }))
   }
 
@@ -492,6 +513,7 @@ class Game extends React.Component {
           passed: false,
         },
         error: null,
+        passed: false,
       }),
       () => {
         if (this.state.hand.length === 0) this.handleWin()

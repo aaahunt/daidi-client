@@ -90,14 +90,14 @@ class Dashboard extends React.Component {
         <div className="p-5 mb-4">
           <div className="container-fluid py-5">
             <h1 className="display-5 fw-bold">Dashboard</h1>
-            <p>
+            <h3>
               Welcome, {this.state.username}
               <img
                 src={`${socketStatus}.svg`}
                 alt={socketStatus}
                 title={socketStatus}
               />
-            </p>
+            </h3>
 
             <Online
               users={this.state.onlineUsers}

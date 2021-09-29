@@ -1,3 +1,5 @@
+import Emoji from "./notifications/Emoji"
+
 const Opponent = (props) => {
   return (
     <section
@@ -23,6 +25,17 @@ const Opponent = (props) => {
       <div className="d-flex justify-content-center">
         {renderCards(props.cards)}
       </div>
+      {props.emoji && (
+        <div className="position-absolute bottom-0 start-50 translate-middle">
+          <Emoji
+            show={props.emoji !== null}
+            header={props.emoji}
+            clearMessage={props.clearEmoji}
+          >
+            <h3>{props.emoji}</h3>
+          </Emoji>
+        </div>
+      )}
     </section>
   )
 }

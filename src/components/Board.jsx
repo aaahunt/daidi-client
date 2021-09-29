@@ -1,4 +1,4 @@
-const Board = ({ board, error }) => {
+const Board = ({ board, error, emoji, clearEmoji }) => {
   return (
     <section
       className="position-relative d-flex justify-content-center align-items-center"

@@ -231,6 +231,9 @@ class App extends React.Component {
   // Use response from server (hands and first player) to begin a new game
   startGame = (response) => {
     this.removeChallenge()
+
+    this.setState({ message: null })
+
     this.props.history.push({
       pathname: GAME_URL,
       state: response,

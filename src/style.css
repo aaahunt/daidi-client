@@ -68,22 +68,39 @@ img {
   user-select: none;
 }
 
-.loading:after {
-  content: "\00a0\00a0\00a0";
-  animation: progress-ellipsis 2s infinite;
+.emojis {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  transition: all 2s;
+}
+.emojis .active {
+  animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
 }
 
-@keyframes progress-ellipsis {
+#emoji {
+  width: auto !important;
+}
+.emojis h3 {
+  cursor: pointer;
+  font-size: 2rem;
+  margin: -25px 5px 10px 5px;
+  z-index: 10;
+}
+.opponent-speech {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: 10px;
+}
+
+@keyframes slide-out-top {
   0% {
-    content: "\00a0\00a0\00a0";
+    transform: translateY(0);
+    opacity: 1;
   }
-  30% {
-    content: ".\00a0\00a0";
-  }
-  60% {
-    content: "..\00a0";
-  }
-  90% {
-    content: "...";
+  100% {
+    transform: translateY(-300px);
+    opacity: 0;
   }
 }
