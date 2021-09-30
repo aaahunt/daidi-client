@@ -498,7 +498,7 @@ class Game extends React.Component {
           }),
           () => {
             if (this.state.hand.length === 0) {
-              this.socket.emit("win", this.state.opponent.id)
+              this.socket.emit("action", "win", this.state.opponent.id)
               this.handleWin()
             }
           }
