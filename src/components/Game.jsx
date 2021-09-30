@@ -118,6 +118,7 @@ class Game extends React.Component {
         <Modals
           {...this.state}
           quitGame={this.quitGame}
+          leaveGame={this.leaveGame}
           rematch={this.rematch}
         />
       </main>
@@ -151,6 +152,10 @@ class Game extends React.Component {
 
   quitGame = () => {
     this.socket.emit("action", "quit", this.state.opponent.id)
+    this.leaveGame()
+  }
+
+  leaveGame = () => {
     sessionStorage.removeItem("game")
     this.setState(initState)
     this.props.location.state = null
