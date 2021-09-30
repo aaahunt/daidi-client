@@ -11,6 +11,7 @@ import Modals from "./notifications/Modals"
 // Config vars
 import { SocketContext } from "../context/socket"
 import { DASHBOARD_URL, SERVER_URL } from "../config"
+import { Link } from "react-router-dom"
 
 const initState = {
   opponent: null,
@@ -60,12 +61,12 @@ class Game extends React.Component {
     // const storedState = sessionStorage.getItem("game")
     // this.setState(JSON.parse(storedState))
 
-    // Add socket listeners
-    this.socket.on("played", this.handleOpponentPlay)
-    this.socket.on("passed", this.handleOpponentPass)
-    this.socket.on("lost", this.handleLoss)
+    // Add socket listeners - these are the incoming messages from our opponent
+    this.socket.on("play", this.handleOpponentPlay)
+    this.socket.on("pass", this.handleOpponentPass)
+    this.socket.on("win", this.handleLoss)
     this.socket.on("quit", this.handleQuitter)
-    this.socket.on("resignation", this.handleResignation)
+    this.socket.on("resign", this.handleWin)
     this.socket.on("rematch", this.handleRematchOffer)
     this.socket.on("accepted", this.handleRematchAccepted)
     this.socket.on("emoji", this.handleEmoji)
@@ -89,6 +90,7 @@ class Game extends React.Component {
         <section className="d-flex justify-content-center position-absolute top-50 start-50 translate-middle">
           <div className="text-center p-3 rounded-0">
             <h1>No Game in progress</h1>
+            <Link to={DASHBOARD_URL}>Go to dashboard</Link>
           </div>
         </section>
       )
@@ -111,13 +113,11 @@ class Game extends React.Component {
           playCards={this.playCards}
           resign={this.resign}
           quitGame={this.quitGame}
-          leaveGame={this.leaveGame}
         />
 
         <Modals
           {...this.state}
           quitGame={this.quitGame}
-          leaveGame={this.leaveGame}
           rematch={this.rematch}
         />
       </main>
@@ -137,7 +137,7 @@ class Game extends React.Component {
     let numCards = this.state.hand.length
     let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
 
-    this.socket.emit("resign", this.state.opponent.id)
+    this.socket.emit("action", "resign", this.state.opponent.id)
     this.setState((prevState) => ({
       ...prevState,
       showRematch: true,
@@ -149,13 +149,8 @@ class Game extends React.Component {
     }))
   }
 
-  leaveGame = () => {
-    sessionStorage.removeItem("game")
-    this.props.history.push(DASHBOARD_URL)
-  }
-
   quitGame = () => {
-    this.socket.emit("quitter", this.state.opponent.id)
+    this.socket.emit("action", "quit", this.state.opponent.id)
     sessionStorage.removeItem("game")
     this.setState(initState)
     this.props.location.state = null
@@ -208,19 +203,6 @@ class Game extends React.Component {
     }, 2000)
   }
 
-  handleResignation = () => {
-    // How many points did  we gain? Depends on how many cards opponent has left
-    let numCards = this.state.opponent.cards
-    let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
-
-    this.setState((prevState) => ({
-      ...prevState,
-      showRematch: true,
-      winner: this.state.playerNumber,
-      score: this.state.score + points,
-    }))
-  }
-
   handleRematchOffer = () => {
     this.setState((prevState) => ({
       ...prevState,
@@ -242,31 +224,24 @@ class Game extends React.Component {
   }
 
   passTurn = () => {
-    // Emit our action to opponent, if emit unsuccessful, we must win by default
-    this.socket.emit(
-      "action",
-      "pass",
-      null,
-      this.state.opponent.id,
-      (response) => {
-        if (response === "offline") {
-          this.handleWin()
-          return
-        }
+    // Emit our action to opponent, if error response, we must win by default
+    this.socket.emit("action", "pass", this.state.opponent.id, (res) => {
+      if (res === "error") {
+        this.handleWin()
+        return
       }
-    )
-
-    this.setState((prevState) => ({
-      ...prevState,
-      selected: [],
-      board: null,
-      activePlayer: this.state.activePlayer === 1 ? 2 : 1,
-      error: null,
-      opponent: {
-        ...prevState.opponent,
-        passed: false,
-      },
-    }))
+      this.setState((prevState) => ({
+        ...prevState,
+        selected: [],
+        board: null,
+        activePlayer: this.state.activePlayer === 1 ? 2 : 1,
+        error: null,
+        opponent: {
+          ...prevState.opponent,
+          passed: false,
+        },
+      }))
+    })
   }
 
   handleCardClick = (card) => {
@@ -312,12 +287,32 @@ class Game extends React.Component {
   }
 
   handleQuitter = () => {
+    // How many points did we gain? Depends on how many cards opponent has left
+    let numCards = this.state.opponent.cards
+    let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
+
+    //Update the database
+    this.updateDatabase(points)
+
     this.setState((prevState) => ({
       ...prevState,
       showOppLeft: true,
       winner: this.state.playerNumber,
-      score: this.state.score + 1,
     }))
+  }
+
+  updateDatabase = (points) => {
+    let id = this.state.id
+    let opponent = this.state.opponent.id
+
+    axios
+      .post(SERVER_URL + "/win", { id, opponent, points })
+      .then((res) => {
+        console.log("Successfully added points to database")
+      })
+      .catch((err) => {
+        this.setState({ error: err.message })
+      })
   }
 
   handleWin = () => {
@@ -325,26 +320,15 @@ class Game extends React.Component {
     let numCards = this.state.opponent.cards
     let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
 
+    //Update the database
+    this.updateDatabase(points)
+
     this.setState((prevState) => ({
       ...prevState,
       showRematch: true,
       winner: this.state.playerNumber,
       score: this.state.score + points,
     }))
-    this.socket.emit("winner", this.state.opponent.id)
-
-    //Update the database
-    let id = this.state.id
-    let opponent = this.state.opponent.id
-
-    axios
-      .post(SERVER_URL + "/win", { id, opponent, points })
-      .then((res) => {
-        console.log("Successfully added point to database")
-      })
-      .catch((err) => {
-        this.setState({ error: err.message })
-      })
   }
 
   // User has clicked rematch button on Modal
@@ -366,7 +350,7 @@ class Game extends React.Component {
       })
       return
     }
-    this.socket.emit("rematch offer", this.state.opponent.id)
+    this.socket.emit("action", "rematch", this.state.opponent.id)
     this.setState({ oneWaiting: true })
   }
 
@@ -487,36 +471,38 @@ class Game extends React.Component {
   handleHandSubmit = () => {
     // Emit our hand to opponent, if emit unsuccessful, we must win by default
     this.socket.emit(
-      "action",
       "play",
       this.state.selected,
       this.state.opponent.id,
-      (response) => {
-        if (response === "offline") {
+      (res) => {
+        if (res === "offline") {
           this.handleWin()
           return
         }
-      }
-    )
 
-    this.setState(
-      (prevState) => ({
-        ...prevState,
-        board: this.state.selected.sort(this.byRank),
-        activePlayer: this.state.activePlayer === 1 ? 2 : 1,
-        hand: this.state.hand.filter((card) => {
-          return !this.state.selected.includes(card)
-        }),
-        selected: [],
-        opponent: {
-          ...prevState.opponent,
-          passed: false,
-        },
-        error: null,
-        passed: false,
-      }),
-      () => {
-        if (this.state.hand.length === 0) this.handleWin()
+        this.setState(
+          (prevState) => ({
+            ...prevState,
+            board: this.state.selected.sort(this.byRank),
+            activePlayer: this.state.activePlayer === 1 ? 2 : 1,
+            hand: this.state.hand.filter((card) => {
+              return !this.state.selected.includes(card)
+            }),
+            selected: [],
+            opponent: {
+              ...prevState.opponent,
+              passed: false,
+            },
+            error: null,
+            passed: false,
+          }),
+          () => {
+            if (this.state.hand.length === 0) {
+              this.socket.emit("win", this.state.opponent.id)
+              this.handleWin()
+            }
+          }
+        )
       }
     )
   }

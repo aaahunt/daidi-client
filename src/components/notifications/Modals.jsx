@@ -60,7 +60,7 @@ const Modals = (props) => {
           <p>Go back to the dashboard to find a new game.</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={props.leaveGame}>
+          <Button variant="secondary" onClick={props.quitGame}>
             Back
           </Button>
         </Modal.Footer>

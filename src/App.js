@@ -39,16 +39,16 @@ class App extends React.Component {
     this.setStateUsingCookies()
 
     // Handle incoming challenge
-    this.socket.on("incoming challenge", this.handleIncomingChallenge)
+    this.socket.on("challenge", this.handleIncomingChallenge)
 
     // If challenger accepts, start the game
     this.socket.on("accepted", this.startGame)
 
     // If challenge is declined, inform the challenger
-    this.socket.on("declined", () => {
+    this.socket.on("decline", () => {
       this.setState({
         message: {
-          header: "Decline",
+          header: "Declined",
           body: "Your opponent declined your challenge.",
         },
       })
@@ -134,12 +134,10 @@ class App extends React.Component {
 
   // Handle user logout
   userLogout = () => {
-    this.socket.emit("logout")
     this.socket.disconnect()
     sessionStorage.removeItem("user")
-    sessionStorage.removeItem("challengeID")
-    sessionStorage.removeItem("challengeUser")
-    this.setState({ id: null, username: null, challenge: null }, () => {
+    this.removeChallenge()
+    this.setState({ id: null, username: null }, () => {
       this.props.history.push({ LOGIN_URL })
     })
   }
@@ -184,22 +182,10 @@ class App extends React.Component {
 
   // Handle a challenge offer to ID
   challengeUser = (id) => {
-    this.socket.emit("challenge", id, (response) => {
-      if (response === "offline") {
-        this.setState({
-          message: {
-            header: "Error",
-            body: "That user appears to be offline. Please try again.",
-          },
-        })
-      } else {
-        this.setState({
-          message: {
-            header: "Success",
-            body: "Challenge sent.",
-          },
-        })
-      }
+    this.socket.emit("challenge", id, (res) => {
+      this.setState({
+        message: res,
+      })
     })
   }
 
@@ -212,7 +198,7 @@ class App extends React.Component {
 
   // Handle a challenge decline
   declineChallenge = () => {
-    this.socket.emit("decline", this.state.challenge.id)
+    this.socket.emit("action", "decline", this.state.challenge.id)
     this.removeChallenge()
   }
 
