@@ -1,8 +1,9 @@
 import React from "react"
+
+// Axios library for simplified HTTP requests
 import axios from "axios"
 
-// Config vars
-import { SERVER_URL } from "../config"
+// Socket IO Context
 import { SocketContext } from "../context/socket"
 
 // Components
@@ -13,7 +14,11 @@ import Online from "./Online"
 import Container from "react-bootstrap/Container"
 import ListGroup from "react-bootstrap/ListGroup"
 
+// Config vars
+const config = require("../config")
+
 class Dashboard extends React.Component {
+  // Retrieve socketIO object from context
   static contextType = SocketContext
   socket = this.context
 
@@ -25,48 +30,63 @@ class Dashboard extends React.Component {
   }
 
   componentDidMount() {
-    // Fetch list of previous games
-    let id = this.props.state.id
-    axios.get(SERVER_URL + "/games?id=" + id).then((res) => {
-      this.setState({ games: res.data })
-    })
+    // Fetch list of user's previous games
+    axios
+      .get(config.URL.SERVER + "/games?id=" + this.props.state.id)
+      .then((res) => {
+        this.setState({ games: res.data })
+      })
 
     // Add socket listeners
     this.socket.on("users", this.handleUserList)
     this.socket.on("user connected", this.handleNewUser)
   }
 
+  // Housekeeping, remove socket listeners upon component end of lifecycle
   componentWillUnmount() {
     this.socket.offAny()
   }
 
+  // When we first login the server will send us a list of online users, handle the list
   handleUserList = (users) => {
     let id = this.props.state.id
 
-    // Remove us
+    // Remove us from the list
     let onlineUsers = users.filter((each) => each.userID !== id)
 
-    // Check for duplicates
+    // Check for duplicates & remove them
     onlineUsers = Array.from(new Set(onlineUsers.map((a) => a.userID))).map(
       (id) => {
         return onlineUsers.find((a) => a.userID === id)
       }
     )
-    // Sort alphabetically
+
+    // Exit if no users
+    if (onlineUsers.length < 0) return
+
+    // Sort list alphabetically
     onlineUsers = onlineUsers.sort((a, b) => {
       return a.username - b.username
     })
+
+    // Set list of users into state
     if (onlineUsers.length > 0) this.setState({ onlineUsers })
   }
 
+  // Handle socket notification that a new user has logged in
   handleNewUser = (user) => {
-    let userExists
+    let userExists = false
+
+    // Check if user is already in our list
     if (this.state.onlineUsers) {
       userExists = this.state.onlineUsers.find(
         (each) => each.userID === user.userID
       )
     }
+
     if (userExists) return
+
+    // Add user to our list in state
     this.setState({
       onlineUsers: [...(this.state.onlineUsers || []), user],
     })
@@ -83,8 +103,9 @@ class Dashboard extends React.Component {
           acceptChallenge={this.props.acceptChallenge}
           declineChallenge={this.props.declineChallenge}
         >
-          {this.props.state.challenge && this.props.state.challenge.username}{" "}
-          has challenged you. What do you say?
+          {this.props.state.challenge &&
+            this.props.state.challenge.username +
+              config.MESSAGE.CHALLENGE.INCOMING}
         </Notifications>
 
         <div className="p-5 mb-4">
@@ -120,7 +141,7 @@ class Dashboard extends React.Component {
 }
 
 const GameList = ({ games, handleChallenge }) => {
-  if (!games) return <p>You haven't played any games yet.</p>
+  if (!games) return <p>{config.MESSAGE.GAMES.NONE}</p>
   return games.map((game) => (
     <ListGroup.Item
       key={game.opponent_id}

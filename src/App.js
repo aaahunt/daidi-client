@@ -1,14 +1,15 @@
 import React from "react"
+
+// React Router DOM for links/routing
 import { Switch, Route, withRouter, Redirect } from "react-router-dom"
 
 // Axios library for simplified HTTP requests
 import axios from "axios"
 
-// Config vars
-import { LOGIN_URL, DASHBOARD_URL, SERVER_URL, GAME_URL } from "./config"
+// Socket IO Context
 import { SocketContext } from "./context/socket"
 
-// Components
+// Components used within App
 import Home from "./components/Home"
 import Rules from "./components/Rules"
 import Login from "./components/Login"
@@ -17,50 +18,36 @@ import Dashboard from "./components/Dashboard"
 import Game from "./components/Game"
 import Navigation from "./components/Navigation"
 
-const initState = {
-  username: null,
-  id: null,
-  opponent: null,
-  error: null,
-  challenge: null,
-  message: null,
-}
+// Config vars
+const config = require("./config")
 
 class App extends React.Component {
-  // Retrieve our socket from context
+  // Retrieve socketIO object from context
   static contextType = SocketContext
   socket = this.context
 
   // Initialise our state
-  state = initState
+  state = config.APP_INIT_STATE
 
   componentDidMount() {
     // Upon component refresh fetch user ID and challenge from session storage
     this.setStateUsingCookies()
 
-    // Handle incoming challenge
+    // Add socket listeners
     this.socket.on("challenge", this.handleIncomingChallenge)
-
-    // If challenger accepts, start the game
     this.socket.on("accepted", this.startGame)
-
-    // If challenge is declined, inform the challenger
-    this.socket.on("decline", () => {
-      this.setState({
-        message: {
-          header: "Declined",
-          body: "Your opponent declined your challenge.",
-        },
-      })
-    })
-
-    // If the server goes down, log us out
     this.socket.on("disconnect", this.userLogout)
+    this.socket.on("decline", this.opponentDeclined)
   }
 
   // Housekeeping, remove socket listeners upon component end of lifecycle
   componentWillUnmount() {
     this.socket.offAny()
+  }
+
+  // Inform user that the opponent declined their challenge
+  opponentDeclined = () => {
+    this.setState({ message: config.MESSAGE.DECLINE })
   }
 
   // Handle user registration request
@@ -69,31 +56,30 @@ class App extends React.Component {
     let username = event.target.username.value
     let password = event.target.password.value
 
-    if (username.length < 3) {
-      this.setState({ error: "Username too short" })
-      return
-    }
+    if (username.length < 3)
+      return this.setState({ error: config.MESSAGE.ERROR.USER_SHORT })
+
     const regex = new RegExp(
       "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$"
     )
     if (!regex.test(password)) {
-      this.setState({ error: "Password is too weak" })
+      this.setState({ error: config.MESSAGE.ERROR.PASSWORD })
       return
     }
 
     axios
-      .post(SERVER_URL + "/register", { username, password })
+      .post(config.URL.SERVER + "/register", { username, password })
       .then((res) => {
         sessionStorage.setItem("user", res.data.user._id)
         this.setState({ username, id: res.data.user._id, error: null }, () => {
           this.props.history.push({
-            pathname: DASHBOARD_URL,
+            pathname: config.URL.DASHBOARD,
             state: this.state,
           })
         })
       })
       .catch((err) => {
-        this.setState({ error: "That username is taken. Try another." })
+        this.setState({ error: config.MESSAGE.ERROR.TAKEN })
       })
   }
 
@@ -104,7 +90,7 @@ class App extends React.Component {
     let password = event.target.password.value
 
     axios
-      .post(SERVER_URL + "/login", { username, password })
+      .post(config.URL.SERVER + "/login", { username, password })
       .then((res) => {
         if (!res.data.user) {
           this.setState({ error: res.data })
@@ -116,18 +102,18 @@ class App extends React.Component {
 
         this.socket.on("connect_error", (err) => {
           if (err.message === "invalid username") {
-            console.log("Invalid username")
+            this.setState({ error: config.MESSAGE.ERROR.USER_INVALID })
           }
         })
 
         sessionStorage.setItem("user", res.data.user._id)
         this.setState({ username, id: res.data.user._id, error: null }, () => {
-          this.props.history.push({ DASHBOARD_URL }, { state: this.state })
+          this.props.history.push(config.URL.DASHBOARD, { state: this.state })
         })
       })
       .catch((err) => {
         this.setState({
-          error: "A server error has occured. Please try again later.",
+          error: config.MESSAGE.ERROR.SERVER,
         })
       })
   }
@@ -138,7 +124,7 @@ class App extends React.Component {
     sessionStorage.removeItem("user")
     this.removeChallenge()
     this.setState({ id: null, username: null }, () => {
-      this.props.history.push({ LOGIN_URL })
+      this.props.history.push(config.URL.LOGIN)
     })
   }
 
@@ -151,7 +137,7 @@ class App extends React.Component {
 
     // If we stored the user ID, get remaining user information
     axios
-      .get(SERVER_URL + "/user?id=" + user)
+      .get(config.URL.SERVER + "/user?id=" + user)
       .then((res) => {
         this.setState({
           id: res.data[0]._id,
@@ -196,13 +182,13 @@ class App extends React.Component {
     this.setState({ challenge: { id, username } })
   }
 
-  // Handle a challenge decline
+  // Emit a challenge decline
   declineChallenge = () => {
     this.socket.emit("action", "decline", this.state.challenge.id)
     this.removeChallenge()
   }
 
-  // Handle a challenge accept and start game
+  // Emit an acceptance and start game
   acceptChallenge = () => {
     this.socket.emit("accept", this.state.challenge.id, (response) => {
       this.startGame(response)
@@ -221,7 +207,7 @@ class App extends React.Component {
     this.setState({ message: null })
 
     this.props.history.push({
-      pathname: GAME_URL,
+      pathname: config.URL.GAME,
       state: response,
     })
   }

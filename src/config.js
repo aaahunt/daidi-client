@@ -1,13 +1,80 @@
-module.exports = {
-  HOME_URL: "/",
-  LOGIN_URL: "/login",
-  DASHBOARD_URL: "/dashboard",
-  REGISTER_URL: "/register",
-  GAME_URL: "/play",
-  RULES_URL: "/rules",
-  SERVER_URL:
+var config = {}
+
+config.PROCESS = process.env
+
+// URLs
+config.URL = {
+  HOME: "/",
+  LOGIN: "/login",
+  DASHBOARD: "/dashboard",
+  REGISTER: "/register",
+  GAME: "/play",
+  RULES: "/rules",
+  SERVER:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
-      ? "http://192.168.0.50:4000"
+      ? "http://localhost:4000"
       : "https://daidi-server.herokuapp.com",
-  PROCESS: process.env,
 }
+
+// Initial App State
+config.APP_INIT_STATE = {
+  username: null,
+  id: null,
+  opponent: null,
+  error: null,
+  challenge: null,
+  message: null,
+}
+
+// Initial Game State
+config.GAME_INIT_STATE = {
+  opponent: null,
+  score: 0,
+  selected: [],
+  sortOrder: "rank",
+  board: null,
+  winner: null,
+  error: null,
+  emoji: null,
+
+  // For modals
+  showRematch: false,
+  showOppLeft: false,
+  oneWaiting: false,
+  pressedOneMore: false,
+}
+
+// Messages
+config.MESSAGE = {
+  DECLINE: {
+    header: "Declined",
+    body: "Your opponent declined your challenge.",
+  },
+  PASS: "Hmm, okay... I pass",
+  ERROR: {
+    SERVER: "A server error has occured. Please try again later.",
+    USER_SHORT: "Username too short",
+    USER_INVALID: "Invalid username",
+    PASSWORD: "Password is too weak",
+    TAKEN: "That username is taken. Try another.",
+    NUM_CARDS: "That's not the right number of cards",
+    NOT_ALLOWED: "Hmm, that's not allowed!",
+    FOUR_CARDS: "You can't play four cards, silly",
+    INVALID_HAND: "That's not a valid poker hand",
+    NOT_BEAT_BOARD: "That hand does not beat the board",
+  },
+  CHALLENGE: {
+    INCOMING: " has challenged you. What do you say?",
+  },
+  GAMES: {
+    NONE: "You haven't played any games yet.",
+    NONE_IN_PROGRESS: "No Game in progress",
+  },
+  PLAYERS: {
+    NONE: "There are currently no online users. Try to refresh?",
+    ONLY_YOU: "You're the only person online! You can't play with yourself.",
+  },
+  CREATOR: "Created by Ashley Hunt",
+}
+
+module.exports = config

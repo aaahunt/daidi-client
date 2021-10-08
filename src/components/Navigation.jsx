@@ -1,4 +1,6 @@
 import { useState } from "react"
+
+// React Router DOM for links/routing
 import { Link } from "react-router-dom"
 
 // Bootstrap Components
@@ -7,16 +9,10 @@ import Nav from "react-bootstrap/Nav"
 import Container from "react-bootstrap/Container"
 
 // Config vars
-import {
-  HOME_URL,
-  LOGIN_URL,
-  REGISTER_URL,
-  DASHBOARD_URL,
-  GAME_URL,
-  RULES_URL,
-} from "../config"
+const config = require("../config")
 
 const Navigation = (props) => {
+  // Use state for menu collapsed or not
   const [expanded, setExpanded] = useState(false)
 
   // if ID is set, must be logged in - show logged in Nav
@@ -33,7 +29,7 @@ const Navigation = (props) => {
         >
           <Container>
             <Navbar.Brand>
-              <Link to={HOME_URL}>
+              <Link to={config.URL.HOME}>
                 <img
                   src="header-logo.svg"
                   alt="Dai Di"
@@ -47,22 +43,7 @@ const Navigation = (props) => {
               onClick={() => setExpanded(expanded ? false : "expanded")}
             />
             <Navbar.Collapse id="responsive-navbar-nav">
-              <Nav className="me-auto">
-                <Link
-                  to={DASHBOARD_URL}
-                  className="nav-link"
-                  onClick={() => setExpanded(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to={GAME_URL}
-                  className="nav-link"
-                  onClick={() => setExpanded(false)}
-                >
-                  Game
-                </Link>
-              </Nav>
+              <Nav className="me-auto"></Nav>
               <Nav>
                 <Nav.Link onClick={props.handleLogout}>Logout</Nav.Link>
               </Nav>
@@ -82,7 +63,7 @@ const Navigation = (props) => {
       >
         <Container>
           <Navbar.Brand>
-            <Link to={HOME_URL} onClick={() => setExpanded(false)}>
+            <Link to={config.URL.HOME} onClick={() => setExpanded(false)}>
               <img src="header-logo.svg" alt="Dai Di" width="70" height="70" />
             </Link>
           </Navbar.Brand>
@@ -93,28 +74,28 @@ const Navigation = (props) => {
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
               <Link
-                to={HOME_URL}
+                to={config.URL.HOME}
                 className="nav-link"
                 onClick={() => setExpanded(false)}
               >
                 Home
               </Link>
               <Link
-                to={LOGIN_URL}
+                to={config.URL.LOGIN}
                 className="nav-link"
                 onClick={() => setExpanded(false)}
               >
                 Login
               </Link>
               <Link
-                to={REGISTER_URL}
+                to={config.URL.REGISTER}
                 className="nav-link"
                 onClick={() => setExpanded(false)}
               >
                 Register
               </Link>
               <Link
-                to={RULES_URL}
+                to={config.URL.RULES}
                 className="nav-link"
                 onClick={() => setExpanded(false)}
               >
@@ -127,7 +108,7 @@ const Navigation = (props) => {
                 target="_blank"
                 rel="noreferrer"
               >
-                Created by Ashley Hunt
+                {config.MESSAGE.CREATOR}
               </Nav.Link>
             </Nav>
           </Navbar.Collapse>

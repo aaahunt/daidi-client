@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom"
 import Container from "react-bootstrap/Container"
 
 // Config vars
-import { LOGIN_URL, REGISTER_URL } from "../config"
+const config = require("../config")
 
 const Home = (props) => {
   const history = useHistory()
@@ -16,14 +16,14 @@ const Home = (props) => {
           <img src="dai-di-logo.svg" alt="Dai Di" width="340" height="340" />
           <div className="vstack gap-2 col-md-5 mx-auto">
             <button
-              onClick={() => history.push(LOGIN_URL)}
+              onClick={() => history.push(config.URL.LOGIN)}
               type="button"
               className="btn btn-danger"
             >
               Login
             </button>
             <button
-              onClick={() => history.push(REGISTER_URL)}
+              onClick={() => history.push(config.URL.REGISTER)}
               type="button"
               className="btn btn-warning"
             >

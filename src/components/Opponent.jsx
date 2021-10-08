@@ -1,5 +1,8 @@
 import Emoji from "./notifications/Emoji"
 
+// Config vars
+import { MESSAGE } from "../config"
+
 const Opponent = (props) => {
   return (
     <section
@@ -18,7 +21,7 @@ const Opponent = (props) => {
             className="h1 badge bg-light text-dark position-absolute start-50 mt-5 translate-middle shadow "
             style={{ zIndex: 9999, top: 60 }}
           >
-            Hmm, okay... I pass
+            {MESSAGE.PASS}
           </span>
         </h1>
       )}

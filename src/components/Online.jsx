@@ -4,11 +4,15 @@ import { useState } from "react"
 import Offcanvas from "react-bootstrap/Offcanvas"
 import Button from "react-bootstrap/Button"
 
-const Online = ({ users, handleChallenge, id }) => {
-  const [show, setShow] = useState(false)
+// Config vars
+const config = require("../config")
 
-  const handleClose = () => setShow(false)
-  const handleShow = () => setShow(true)
+const Online = ({ users, handleChallenge, id }) => {
+  // Use state to toggle players panel
+  const [showPanel, setShowPanel] = useState(false)
+
+  const handleClose = () => setShowPanel(false)
+  const handleShow = () => setShowPanel(true)
 
   let options = null
   if (users) {
@@ -20,7 +24,7 @@ const Online = ({ users, handleChallenge, id }) => {
           className="ms-1"
           onClick={() => {
             handleChallenge(user.userID)
-            setShow(false)
+            setShowPanel(false)
           }}
         >
           Challenge
@@ -35,16 +39,14 @@ const Online = ({ users, handleChallenge, id }) => {
         See online players
       </Button>
 
-      <Offcanvas show={show} onHide={handleClose}>
+      <Offcanvas show={showPanel} onHide={handleClose}>
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>Online Players</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
-          {!users && (
-            <p>There are currently no online users. Try to refresh?</p>
-          )}
+          {!users && <p>{config.MESSAGE.PLAYERS.NONE}</p>}
           {users && users.length < 1 && (
-            <p>You're the only person online! You can't play with yourself.</p>
+            <p>{config.MESSAGE.PLAYERS.ONLY_YOU}</p>
           )}
           {options}
         </Offcanvas.Body>

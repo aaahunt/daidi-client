@@ -1,33 +1,22 @@
+import React from "react"
+
 // Axios library for simplified HTTP requests
 import axios from "axios"
 
+// React Router DOM for links/routing
+import { Link } from "react-router-dom"
+
+// Socket IO Context
+import { SocketContext } from "../context/socket"
+
 // Components
-import React from "react"
 import Board from "./Board"
 import Opponent from "./Opponent"
 import Player from "./Player"
 import Modals from "./notifications/Modals"
 
 // Config vars
-import { SocketContext } from "../context/socket"
-import { DASHBOARD_URL, SERVER_URL } from "../config"
-import { Link } from "react-router-dom"
-
-const initState = {
-  opponent: null,
-  score: 0,
-  selected: [],
-  sortOrder: "rank",
-  board: null,
-  winner: null,
-  error: null,
-  emoji: null,
-  // For modals
-  showRematch: false,
-  showOppLeft: false,
-  oneWaiting: false,
-  pressedOneMore: false,
-}
+const config = require("../config")
 
 class Game extends React.Component {
   // Retrieve our socket from context
@@ -35,31 +24,14 @@ class Game extends React.Component {
   socket = this.context
 
   state = {
-    ...initState,
+    ...config.GAME_INIT_STATE,
     ...this.props.state, // Grab the state from App
     ...this.props.location.state, // Grab the game init state passed in by server
   }
 
   componentDidMount() {
-    if (this.state.opponent) {
-      axios.get(SERVER_URL + "/games?id=" + this.state.id).then((res) => {
-        res.data.forEach((el) => {
-          if (el.opponent_id === this.state.opponent.id)
-            this.setState((prevState) => ({
-              ...prevState,
-              score: el.our_score,
-              opponent: {
-                ...prevState.opponent,
-                score: el.opponent_score,
-              },
-            }))
-        })
-      })
-    }
-
-    // Retrieve game state from cookies upon mount
-    // const storedState = sessionStorage.getItem("game")
-    // this.setState(JSON.parse(storedState))
+    // Fetch previous game history scores from database
+    if (this.state.opponent) this.getPreviousScores()
 
     // Add socket listeners - these are the incoming messages from our opponent
     this.socket.on("play", this.handleOpponentPlay)
@@ -72,16 +44,21 @@ class Game extends React.Component {
     this.socket.on("emoji", this.handleEmoji)
   }
 
-  componentDidUpdate() {
-    // Update game state stored in cookies
-    sessionStorage.setItem("game", JSON.stringify(this.state))
-  }
-
-  setStateUsingCookies = () => {
-    if (this.state.id !== null) return
-
-    const user = sessionStorage.getItem("user")
-    if (!user) return
+  // Use axios to fetch previous game data
+  getPreviousScores() {
+    axios.get(config.URL.SERVER + "/games?id=" + this.state.id).then((res) => {
+      res.data.forEach((el) => {
+        if (el.opponent_id === this.state.opponent.id)
+          this.setState((prevState) => ({
+            ...prevState,
+            score: el.our_score,
+            opponent: {
+              ...prevState.opponent,
+              score: el.opponent_score,
+            },
+          }))
+      })
+    })
   }
 
   render() {
@@ -89,8 +66,8 @@ class Game extends React.Component {
       return (
         <section className="d-flex justify-content-center position-absolute top-50 start-50 translate-middle">
           <div className="text-center p-3 rounded-0">
-            <h1>No Game in progress</h1>
-            <Link to={DASHBOARD_URL}>Go to dashboard</Link>
+            <h1>{config.MESSAGE.GAMES.NONE_IN_PROGRESS}</h1>
+            <Link to={config.URL.DASHBOARD}>Go to dashboard</Link>
           </div>
         </section>
       )
@@ -125,10 +102,12 @@ class Game extends React.Component {
     )
   }
 
+  // Show emoji that opponent has sent
   handleEmoji = (emoji) => {
     this.setState({ emoji })
   }
 
+  // Clear emoji from opponent's chat box
   clearEmoji = () => {
     this.setState({ emoji: null })
   }
@@ -157,9 +136,9 @@ class Game extends React.Component {
 
   leaveGame = () => {
     sessionStorage.removeItem("game")
-    this.setState(initState)
+    this.setState(config.GAME_INIT_STATE)
     this.props.location.state = null
-    this.props.history.push(DASHBOARD_URL)
+    this.props.history.push(config.URL.DASHBOARD)
   }
 
   handleOpponentPlay = (hand) => {
@@ -217,7 +196,7 @@ class Game extends React.Component {
 
   handleRematchAccepted = (response) => {
     this.setState((prevState) => ({
-      ...initState,
+      ...config.GAME_INIT_STATE,
       ...response,
       score: this.state.score,
       opponent: {
@@ -261,12 +240,14 @@ class Game extends React.Component {
     // Check if max cards reached
     if (this.state.selected.length === 5) return
 
+    // Add card to 'selected' array
     this.setState((prevState) => ({
       ...prevState,
       selected: [...prevState.selected, card],
     }))
   }
 
+  // Clear selected array
   clearSelection = () => {
     this.setState((prevState) => ({
       ...prevState,
@@ -274,6 +255,7 @@ class Game extends React.Component {
     }))
   }
 
+  // Toggle between hands sorted by rank or suit
   toggleHandSorting = () => {
     const currentSort = this.state.sortOrder
     const switchTo = currentSort === "rank" ? "suit" : "rank"
@@ -306,12 +288,13 @@ class Game extends React.Component {
     }))
   }
 
+  // Update the database with the points we have won
   updateDatabase = (points) => {
     let id = this.state.id
     let opponent = this.state.opponent.id
 
     axios
-      .post(SERVER_URL + "/win", { id, opponent, points })
+      .post(config.URL.SERVER + "/win", { id, opponent, points })
       .then((res) => {
         console.log("Successfully added points to database")
       })
@@ -343,7 +326,7 @@ class Game extends React.Component {
     if (this.state.oneWaiting) {
       this.socket.emit("accept", this.state.opponent.id, (response) => {
         this.setState((prevState) => ({
-          ...initState,
+          ...config.GAME_INIT_STATE,
           ...response,
           score: this.state.score,
           opponent: {
@@ -361,114 +344,122 @@ class Game extends React.Component {
 
   playCards = () => {
     const numCards = this.state.selected.length
-    let beatsBoard = false
     let boardRank = 0
 
+    // If trying to play zero cards, return
     if (numCards < 1) return
 
-    // If there is a board, check our submission is the same number of cards
-    if (this.state.board) {
-      if (this.state.board.length !== numCards) {
-        this.setState({ error: "That's not the right number of cards" })
-        return
-      }
+    // If there is a board, check our submission is the same number of cards, if not return
+    if (this.state.board && this.state.board.length !== numCards) {
+      this.setState({ error: config.MESSAGE.ERROR.NUM_CARDS })
+      return
     }
-    // If there isn't a board, set beatsBoard to true
-    else beatsBoard = true
 
-    // When they submit 3 cards we only need to make sure all cards are the same
+    // When they submit 3 cards we only need to make sure all cards are the same and one cards beats one board card
     if (numCards <= 3) {
-      const legal = this.state.selected.every(
-        (card) => card.rankValue === this.state.selected[0].rankValue
-      )
-      // Check if our best cards value beats the current best card
-      if (this.state.board)
-        beatsBoard = this.state.selected.some(
-          (card) =>
-            card.value >
-            Math.max.apply(
-              Math,
-              this.state.board.map(function (o) {
-                return o.value
-              })
-            )
-        )
-
-      if (legal && beatsBoard) {
+      if (this.legalThreeCardHand) {
         this.handleHandSubmit()
         return
       }
-      this.setState({ error: "Hmm, that's not allowed!" })
+      this.setState({ error: config.MESSAGE.ERROR.NOT_ALLOWED })
       return
     }
 
     // Don't allow 4 card hands
     if (numCards === 4) {
-      this.setState({ error: "You can't play four cards, silly" })
+      this.setState({ error: config.MESSAGE.ERROR.FOUR_CARDS })
       return
     }
 
-    // The hard one
+    // If five card poker hand, figure out the value of our hand and compare vs the board
     if (numCards === 5) {
       // Invalid = 0, Straight = 1, Flush = 2, Full house = 3, Quads = 4, Straight flush = 5, Royal flush = 6
       let handRank = this.handRanking(this.state.selected)
 
+      // If handRank = 0, return with error
       if (!handRank) {
-        this.setState({ error: "That's not a valid poker hand" })
+        this.setState({ error: config.MESSAGE.ERROR.INVALID_HAND })
         return
       }
 
+      // If there is a board, determine it's rank
       if (this.state.board) boardRank = this.handRanking(this.state.board)
 
+      // If our hand is strictly better, handle the submit
       if (handRank > boardRank) this.handleHandSubmit()
+      // If the board is strictly better, return with error
       else if (handRank < boardRank) {
-        this.setState({ error: "That hand does not beat the board" })
+        this.setState({ error: config.MESSAGE.ERROR.NOT_BEAT_BOARD })
         return
-      } else {
-        /* Handle the instance where they are the strict same value */
-
-        // Inspect the highest card on the board, including deuces and suits
-        const boardMaxCard = Math.max.apply(
-          Math,
-          this.state.board.map(function (o) {
-            return o.value
-          })
-        )
-
-        const handMaxCard = Math.max.apply(
-          Math,
-          this.state.selected.map(function (o) {
-            return o.value
-          })
-        )
-
-        switch (handRank) {
-          // Straight and flush evaluated together, just looking for highest value card
-          case 1:
-          case 2:
-          case 5:
-            if (handMaxCard < boardMaxCard) {
-              this.setState({ error: "That hand does not beat the board" })
-              return
-            }
-            this.handleHandSubmit()
-            return
-          // Full house and quads evaluated at the same time, just looking at the highest value card for the most occuring card
-          case 3:
-          case 4:
-            const modeCard = this.modeCard(this.state.selected)
-            const modeBoardCard = this.modeCard(this.state.board)
-            if (modeCard.value < modeBoardCard.value) {
-              this.setState({ error: "That hand does not beat the board" })
-              return
-            }
-            this.handleHandSubmit()
-            return
-          default:
-            this.setState({ error: "Something went wrong there" })
-            break
-        }
       }
+      // Otherwise hands be of equal strict value so we need to investigate further
+      else if (this.winOnTieBreak(handRank)) this.handleHandSubmit()
+    }
+  }
+
+  // This functions checks if the submission is a legal three card hand
+  legalThreeCardHand = () => {
+    let beatsBoard = true
+    let legal = this.state.selected.every(
+      (card) => card.rankValue === this.state.selected[0].rankValue
+    )
+    // Check if our best cards value beats the current best card
+    if (this.state.board)
+      beatsBoard = this.state.selected.some(
+        (card) =>
+          card.value >
+          Math.max.apply(
+            Math,
+            this.state.board.map(function (o) {
+              return o.value
+            })
+          )
+      )
+    return beatsBoard && legal
+  }
+
+  // When both players have the same five card hand type (i.e. flush) determine the winner
+  // returns true if we beat the board and should therefore submit our hand
+  winOnTieBreak = (handRank) => {
+    // Inspect the highest card on the board, including deuces and suits
+    const boardMaxCard = Math.max.apply(
+      Math,
+      this.state.board.map(function (o) {
+        return o.value
+      })
+    )
+
+    const handMaxCard = Math.max.apply(
+      Math,
+      this.state.selected.map(function (o) {
+        return o.value
+      })
+    )
+
+    switch (handRank) {
+      // Straight, flush, and straight flush evaluated together, just looking for highest value card
+      case 1:
+      case 2:
+      case 5:
+        if (handMaxCard < boardMaxCard) {
+          this.setState({ error: config.MESSAGE.ERROR.NOT_BEAT_BOARD })
+          return false
+        }
+        return true
+
+      // Full house and quads evaluated at the same time, just looking at the highest value card for the most occuring card
+      case 3:
+      case 4:
+        const modeCard = this.modeCard(this.state.selected)
+        const modeBoardCard = this.modeCard(this.state.board)
+        if (modeCard.value < modeBoardCard.value) {
+          this.setState({ error: config.MESSAGE.ERROR.NOT_BEAT_BOARD })
+          return false
+        }
+        return true
+      default:
+        this.setState({ error: config.MESSAGE.ERROR.SERVER })
+        return false
     }
   }
 

@@ -8,10 +8,10 @@ const Register = (props) => {
   const { error } = props.state
 
   function checkPasswordStrength() {
-    // Grab password
+    // Get password
     const password = document.getElementById("password").value
 
-    // Define the four regexes
+    // Define the four regexes that password need to satisfy
     const minLength = new RegExp("^\\w{8,}$")
     const oneUpper = new RegExp("[A-Z]")
     const oneLower = new RegExp("[a-z]")
