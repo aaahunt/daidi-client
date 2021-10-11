@@ -220,6 +220,8 @@ class App extends React.Component {
   }
 
   render() {
+    const gameState = JSON.parse(sessionStorage.getItem("game"))
+
     return (
       <React.Fragment>
         {this.props.location.pathname !== "/play" && (
@@ -265,6 +267,8 @@ class App extends React.Component {
           <Route path="/dashboard">
             {this.state.id === null ? (
               <Redirect to="/login" />
+            ) : gameState !== null ? (
+              <Redirect to="/play" />
             ) : (
               <Dashboard
                 {...this.props}

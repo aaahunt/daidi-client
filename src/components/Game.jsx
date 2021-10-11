@@ -30,6 +30,8 @@ class Game extends React.Component {
   }
 
   componentDidMount() {
+    this.getStateUsingCookies()
+
     // Fetch previous game history scores from database
     if (this.state.opponent) this.getPreviousScores()
 
@@ -42,6 +44,11 @@ class Game extends React.Component {
     this.socket.on("rematch", this.handleRematchOffer)
     this.socket.on("accepted", this.handleRematchAccepted)
     this.socket.on("emoji", this.handleEmoji)
+  }
+
+  getStateUsingCookies = () => {
+    const game = JSON.parse(sessionStorage.getItem("game"))
+    if (game && game.hand) this.setState(game)
   }
 
   // Use axios to fetch previous game data
@@ -62,6 +69,10 @@ class Game extends React.Component {
   }
 
   render() {
+    // If we're in a game, update the new game state into cookies
+    if (this.state.hand)
+      sessionStorage.setItem("game", JSON.stringify(this.state))
+
     if (!this.state.opponent)
       return (
         <section className="d-flex justify-content-center position-absolute top-50 start-50 translate-middle">
