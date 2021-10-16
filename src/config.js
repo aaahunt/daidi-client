@@ -16,6 +16,13 @@ config.URL = {
       : "https://daidi-server.herokuapp.com",
 }
 
+// Game Variables
+config.GAME = {
+  TOP_MULTIPLIER: 3,
+  MIDDLE_MULTIPLIER: 2,
+  BOTTOM_MULTIPLIER: 1,
+}
+
 // Initial App State
 config.APP_INIT_STATE = {
   username: null,

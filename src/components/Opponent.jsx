@@ -33,7 +33,7 @@ const Opponent = (props) => {
           <Emoji
             show={props.emoji !== null}
             header={props.emoji}
-            clearMessage={props.clearEmoji}
+            clearMessage={() => props.setEmoji(null)}
           >
             <h3>{props.emoji}</h3>
           </Emoji>

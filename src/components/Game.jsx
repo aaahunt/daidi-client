@@ -43,7 +43,7 @@ class Game extends React.Component {
     this.socket.on("resign", this.handleWin)
     this.socket.on("rematch", this.handleRematchOffer)
     this.socket.on("accepted", this.handleRematchAccepted)
-    this.socket.on("emoji", this.handleEmoji)
+    this.socket.on("emoji", this.setEmoji)
   }
 
   getStateUsingCookies = () => {
@@ -88,7 +88,7 @@ class Game extends React.Component {
         <Opponent
           {...this.state.opponent}
           emoji={this.state.emoji}
-          clearEmoji={this.clearEmoji}
+          setEmoji={this.setEmoji}
         />
         <Board board={this.state.board} error={this.state.error} />
 
@@ -113,20 +113,14 @@ class Game extends React.Component {
     )
   }
 
-  // Show emoji that opponent has sent
-  handleEmoji = (emoji) => {
-    this.setState({ emoji })
-  }
-
-  // Clear emoji from opponent's chat box
-  clearEmoji = () => {
-    this.setState({ emoji: null })
+  // Set emoji / Clear Emoji
+  setEmoji = (emoji) => {
+    this.setState({ emoji: emoji })
   }
 
   resign = () => {
     // How many points did our opponent gain? Depends on how many cards we have left
-    let numCards = this.state.hand.length
-    let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
+    let points = this.determinePoints(this.state.hand.length)
 
     this.socket.emit("action", "resign", this.state.opponent.id)
     this.setState((prevState) => ({
@@ -182,8 +176,7 @@ class Game extends React.Component {
   handleLoss = () => {
     // Wait a couple seconds before we acknowledge the defeat
     // How many points did our opponent gain? Depends on how many cards we have left
-    let numCards = this.state.hand.length
-    let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
+    let points = this.determinePoints(this.state.hand.length)
 
     setTimeout(() => {
       this.setState((prevState) => ({
@@ -286,8 +279,7 @@ class Game extends React.Component {
 
   handleQuitter = () => {
     // How many points did we gain? Depends on how many cards opponent has left
-    let numCards = this.state.opponent.cards
-    let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
+    let points = this.determinePoints(this.state.opponent.cards)
 
     //Update the database
     this.updateDatabase(points)
@@ -316,8 +308,7 @@ class Game extends React.Component {
 
   handleWin = () => {
     // How many points did we gain? Depends on how many cards opponent has left
-    let numCards = this.state.opponent.cards
-    let points = numCards === 13 ? 39 : numCards > 9 ? numCards * 2 : numCards
+    let points = this.determinePoints(this.state.opponent.cards)
 
     //Update the database
     this.updateDatabase(points)
@@ -328,6 +319,14 @@ class Game extends React.Component {
       winner: this.state.playerNumber,
       score: this.state.score + points,
     }))
+  }
+
+  determinePoints = (n) => {
+    return n === 13
+      ? n * config.GAME.TOP_MULTIPLIER
+      : n > 9
+      ? n * config.GAME.MIDDLE_MULTIPLIER
+      : n * config.GAME.BOTTOM_MULTIPLIER
   }
 
   // User has clicked rematch button on Modal
@@ -369,7 +368,7 @@ class Game extends React.Component {
     // When they submit 3 cards we only need to make sure all cards are the same and one cards beats one board card
     if (numCards <= 3) {
       if (this.legalThreeCardHand(this.state.selected)) {
-        this.handleHandSubmit()
+        this.submitHand(this.state.selected)
         return
       }
       this.setState({ error: config.MESSAGE.ERROR.NOT_ALLOWED })
@@ -397,14 +396,15 @@ class Game extends React.Component {
       if (this.state.board) boardRank = this.handRanking(this.state.board)
 
       // If our hand is strictly better, handle the submit
-      if (handRank > boardRank) this.handleHandSubmit()
+      if (handRank > boardRank) this.submitHand(this.state.selected)
       // If the board is strictly better, return with error
       else if (handRank < boardRank) {
         this.setState({ error: config.MESSAGE.ERROR.NOT_BEAT_BOARD })
         return
       }
       // Otherwise hands be of equal strict value so we need to investigate further
-      else if (this.winOnTieBreak(handRank)) this.handleHandSubmit()
+      else if (this.winOnTieBreak(handRank))
+        this.submitHand(this.state.selected)
     }
   }
 
@@ -473,49 +473,44 @@ class Game extends React.Component {
   }
 
   // Play the selected hand
-  handleHandSubmit = () => {
+  submitHand = (hand) => {
     // Emit our hand to opponent, if emit unsuccessful, we must win by default
-    this.socket.emit(
-      "play",
-      this.state.selected,
-      this.state.opponent.id,
-      (res) => {
-        if (res === "offline") {
-          this.handleWin()
-          return
-        }
-
-        this.setState(
-          (prevState) => ({
-            ...prevState,
-            board: this.state.selected.sort(this.byRank),
-            activePlayer: this.state.activePlayer === 1 ? 2 : 1,
-            hand: this.state.hand.filter((card) => {
-              return !this.state.selected.includes(card)
-            }),
-            selected: [],
-            opponent: {
-              ...prevState.opponent,
-              passed: false,
-            },
-            error: null,
-            passed: false,
-          }),
-          () => {
-            if (this.state.hand.length === 0) {
-              this.socket.emit("action", "win", this.state.opponent.id)
-              this.handleWin()
-            }
-          }
-        )
+    this.socket.emit("play", hand, this.state.opponent.id, (res) => {
+      if (res === "offline") {
+        this.handleWin()
+        return
       }
-    )
+
+      this.setState(
+        (prevState) => ({
+          ...prevState,
+          board: hand.sort(this.byRank),
+          activePlayer: this.state.activePlayer === 1 ? 2 : 1,
+          hand: this.state.hand.filter((card) => {
+            return !hand.includes(card)
+          }),
+          selected: [],
+          opponent: {
+            ...prevState.opponent,
+            passed: false,
+          },
+          error: null,
+          passed: false,
+        }),
+        () => {
+          if (this.state.hand.length === 0) {
+            this.socket.emit("action", "win", this.state.opponent.id)
+            this.handleWin()
+          }
+        }
+      )
+    })
   }
 
   // Return the rank of our hand
   // Invalid = 0, Straight = 1, Flush = 2, Full house = 3, Quads = 4, Straight flush = 5, Royal flush = 6
   handRanking = (hand) => {
-    let straight
+    // If every card has the same suit, flush = true
     const flush = hand.every((card) => card.suit === hand[0].suit)
 
     // Get the number of unique card ranks in our hand
@@ -523,29 +518,19 @@ class Game extends React.Component {
 
     // If there are only two unique cards in the hand we must have Full house or Quads
     if (unique.length === 2) {
+      // Count the number of times the first card appears
       var countFirst = hand.reduce((n, card) => {
         return n + (card.rankValue === hand[0].rankValue)
       }, 0)
+      // If count = 2 or 3 must be full house, else must be quads (because would be 1 or 4 cards)
       if (countFirst === 2 || countFirst === 3) return 3 // Full house
       return 4 // Quads
     }
 
     // Straights check
+    let straight = false
     if (unique.length === 5) {
-      const sortedHand = hand.sort(this.byRank)
-
-      straight = true
-      for (let i = 1; i < sortedHand.length; i++) {
-        if (sortedHand[i].rankValue !== sortedHand[i - 1].rankValue + 1) {
-          if (
-            (i === 3 || i === 4) &&
-            sortedHand[i].rankValue === sortedHand[i - 1].rankValue + 9
-          )
-            continue
-          straight = false
-          break
-        }
-      }
+      straight = this.checkForStraight(hand)
     }
 
     //Royal flush
@@ -561,19 +546,40 @@ class Game extends React.Component {
     return 0
   }
 
-  // Utility functions
+  checkForStraight = (hand) => {
+    const sortedHand = hand.sort(this.byRank)
+
+    let straight = true
+    // loop through sorted hand and check that value increases
+    for (let i = 1; i < sortedHand.length; i++) {
+      if (sortedHand[i].rankValue !== sortedHand[i - 1].rankValue + 1) {
+        // Take into account straights containing a deuce
+        if (
+          (i === 3 || i === 4) &&
+          sortedHand[i].rankValue === sortedHand[i - 1].rankValue + 9
+        )
+          continue
+        straight = false
+        break
+      }
+    }
+    return straight
+  }
+
+  // Sorting function to sort by card rank value
   byRank = (a, b) => {
     if (a.rankValue > b.rankValue) return 1
     if (a.rankValue < b.rankValue) return -1
     return 0
   }
 
-  modeCard = (arr) => {
-    return [...arr]
+  // Utility function to find the most common occuring card in an array of cards
+  modeCard = (cards) => {
+    return [...cards]
       .sort(
         (a, b) =>
-          arr.filter((v) => v.rank === a.rank).length -
-          arr.filter((v) => v.rank === b.rank).length
+          cards.filter((v) => v.rank === a.rank).length -
+          cards.filter((v) => v.rank === b.rank).length
       )
       .pop()
   }
