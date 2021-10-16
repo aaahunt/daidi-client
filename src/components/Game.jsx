@@ -368,7 +368,7 @@ class Game extends React.Component {
 
     // When they submit 3 cards we only need to make sure all cards are the same and one cards beats one board card
     if (numCards <= 3) {
-      if (this.legalThreeCardHand) {
+      if (this.legalThreeCardHand(this.state.selected)) {
         this.handleHandSubmit()
         return
       }
@@ -409,14 +409,12 @@ class Game extends React.Component {
   }
 
   // This functions checks if the submission is a legal three card hand
-  legalThreeCardHand = () => {
+  legalThreeCardHand = (hand) => {
     let beatsBoard = true
-    let legal = this.state.selected.every(
-      (card) => card.rankValue === this.state.selected[0].rankValue
-    )
+    let legal = hand.every((card) => card.rankValue === hand[0].rankValue)
     // Check if our best cards value beats the current best card
     if (this.state.board)
-      beatsBoard = this.state.selected.some(
+      beatsBoard = hand.some(
         (card) =>
           card.value >
           Math.max.apply(
