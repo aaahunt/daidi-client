@@ -52,16 +52,13 @@ class App extends React.Component {
 
   // Handle user registration request
   userRegister = (event) => {
-    event.preventDefault()
-    let username = event.target.username.value
-    let password = event.target.password.value
+    let [username, password] = this.formInit(event)
 
     if (username.length < 3)
       return this.setState({ error: config.MESSAGE.ERROR.USER_SHORT })
 
-    const regex = new RegExp(
-      "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$"
-    )
+    const regex = new RegExp(config.GAME.PASS_REGEX)
+
     if (!regex.test(password)) {
       this.setState({ error: config.MESSAGE.ERROR.PASSWORD })
       return
@@ -85,9 +82,7 @@ class App extends React.Component {
 
   // Handle user login request
   userLogin = (event) => {
-    event.preventDefault()
-    let username = event.target.username.value
-    let password = event.target.password.value
+    let [username, password] = this.formInit(event)
 
     axios
       .post(config.URL.SERVER + "/login", { username, password })
@@ -116,6 +111,11 @@ class App extends React.Component {
           error: config.MESSAGE.ERROR.SERVER,
         })
       })
+  }
+
+  formInit = (event) => {
+    event.preventDefault()
+    return [event.target.username.value, event.target.password.value]
   }
 
   // Handle user logout
@@ -153,6 +153,10 @@ class App extends React.Component {
         console.log(err)
       })
 
+    this.getChallenge()
+  }
+
+  getChallenge = () => {
     // If they have a challenge, retrieve it from cookies
     const challengeID = sessionStorage.getItem("challengeID")
     const challengeUser = sessionStorage.getItem("challengeUser")

@@ -21,6 +21,7 @@ config.GAME = {
   TOP_MULTIPLIER: 3,
   MIDDLE_MULTIPLIER: 2,
   BOTTOM_MULTIPLIER: 1,
+  PASS_REGEX: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$",
 }
 
 // Initial App State
