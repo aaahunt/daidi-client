@@ -241,7 +241,7 @@ class App extends React.Component {
           </Route>
 
           <Route path="/login">
-            {!(this.state.id === null) ? (
+            {this.state.id !== null ? (
               <Redirect to="/dashboard" />
             ) : (
               <Login
@@ -253,7 +253,7 @@ class App extends React.Component {
           </Route>
 
           <Route path="/register">
-            {!(this.state.id === null) === null ? (
+            {this.state.id !== null  ? (
               <Redirect to="/dashboard" />
             ) : (
               <Register
