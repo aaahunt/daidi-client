@@ -119,6 +119,7 @@ class Game extends React.Component {
   }
 
   resign = () => {
+    if(!window.confirm(config.MESSAGE.CONFIRM.RESIGN)) return;
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
@@ -135,6 +136,7 @@ class Game extends React.Component {
   }
 
   quitGame = () => {
+    if(!window.confirm(config.MESSAGE.CONFIRM.QUIT)) return;
     this.socket.emit("action", "quit", this.state.opponent.id)
     this.leaveGame()
   }
@@ -174,11 +176,11 @@ class Game extends React.Component {
   }
 
   handleLoss = () => {
-    // Wait a couple seconds before we acknowledge the defeat
+    
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
-    setTimeout(() => {
+    setTimeout(() => { // Wait a couple seconds before we acknowledge the defeat
       this.setState((prevState) => ({
         ...prevState,
         showRematch: true,
@@ -188,7 +190,7 @@ class Game extends React.Component {
           score: this.state.opponent.score + points,
         },
       }))
-    }, 2000)
+    }, config.GAME.WAIT_AFTER_LOSE)
   }
 
   handleRematchOffer = () => {
@@ -262,12 +264,11 @@ class Game extends React.Component {
   // Toggle between hands sorted by rank or suit
   toggleHandSorting = () => {
     const currentSort = this.state.sortOrder
-    const switchTo = currentSort === "rank" ? "suit" : "rank"
-    const propertyToFind = currentSort === "rank" ? "suitValue" : "value"
+    const switchTo = (currentSort === "rank") ? "suit" : "rank"
+    const propertyToFind = (currentSort === "rank") ? "suitValue" : "value"
 
     const sortedHand = this.state.hand.sort((a, b) => {
-      if (a[propertyToFind] < b[propertyToFind]) return -1
-      return 1
+      return (a[propertyToFind] < b[propertyToFind]) ? -1 : 1
     })
 
     this.setState((prevState) => ({
@@ -299,7 +300,7 @@ class Game extends React.Component {
     axios
       .post(config.URL.SERVER + "/win", { id, opponent, points })
       .then((res) => {
-        console.log("Successfully added points to database")
+        console.log("Successfully added points to database", res, id, opponent, points)
       })
       .catch((err) => {
         this.setState({ error: err.message })
@@ -322,9 +323,9 @@ class Game extends React.Component {
   }
 
   determinePoints = (n) => {
-    return n === 13
+    return (n === 13)
       ? n * config.GAME.TOP_MULTIPLIER
-      : n > 9
+      : (n > 9)
       ? n * config.GAME.MIDDLE_MULTIPLIER
       : n * config.GAME.BOTTOM_MULTIPLIER
   }
@@ -519,7 +520,7 @@ class Game extends React.Component {
     // If there are only two unique cards in the hand we must have Full house or Quads
     if (unique.length === 2) {
       // Count the number of times the first card appears
-      var countFirst = hand.reduce((n, card) => {
+      let countFirst = hand.reduce((n, card) => {
         return n + (card.rankValue === hand[0].rankValue)
       }, 0)
       // If count = 2 or 3 must be full house, else must be quads (because would be 1 or 4 cards)
