@@ -17,18 +17,20 @@ const Online = ({ users, games, handleChallenge, id }) => {
   let options = null
   if (users) {
 
-    users.forEach(user => {
-      games.forEach(game => {
-        if(game.opponent_id === user.userID){
-          user.opponent_score = game.opponent_score
-          user.our_score = game.our_score
-        }
+    if(games){
+      users.forEach(user => {
+        games.forEach(game => {
+          if(game.opponent_id === user.userID){
+            user.hasHistory = true;
+            user.opponent_score = game.opponent_score
+            user.our_score = game.our_score
+          }
+        });
       });
-    });
-
+    }
     options = users.map((user) => (
       <div key={user.userID} value={user.userID}>
-        {user.username} {user.our_score && "(" + user.our_score + "-" + user.opponent_score + ")"} 
+        {user.username} {user.hasHistory && "(" + user.our_score + "-" + user.opponent_score + ")"} 
         <Button
           size="sm"
           className="ms-1"
