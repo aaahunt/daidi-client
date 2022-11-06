@@ -22,6 +22,7 @@ config.GAME = {
   MIDDLE_MULTIPLIER: 2,
   BOTTOM_MULTIPLIER: 1,
   PASS_REGEX: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$",
+  WAIT_AFTER_LOSE: 2000
 }
 
 // Initial App State
@@ -81,6 +82,10 @@ config.MESSAGE = {
   PLAYERS: {
     NONE: "There are currently no online users. Try to refresh?",
     ONLY_YOU: "You're the only person online! You can't play with yourself.",
+  },
+  CONFIRM: {
+    QUIT: "Are you sure you want to quit",
+    RESIGN: "Are you sure you want to resign"
   },
   CREATOR: "Created by Ashley Hunt",
 }
