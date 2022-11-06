@@ -20,7 +20,7 @@ main {
   max-width: 600px;
 }
 .playing-card {
-  border: 1px solid grey;
+  border: 2px solid grey;
   border-radius: 5px;
   margin-left: -15px;
   min-width: 48px;
@@ -58,7 +58,7 @@ main {
 }
 .selected {
   margin-top: -50px;
-  border-color: green;
+  border: 3px solid green;
 }
 .waiting {
   width: 100%;
