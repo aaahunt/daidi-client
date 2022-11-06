@@ -84,11 +84,14 @@ class App extends React.Component {
   userLogin = (event) => {
     let [username, password] = this.formInit(event)
 
+    event.target[event.target.length -1].disabled = true; // Disable the last form element, hopefully the submit button
+
     axios
       .post(config.URL.SERVER + "/login", { username, password })
       .then((res) => {
         if (!res.data.user) {
           this.setState({ error: res.data })
+          event.target[event.target.length -1].disabled = false;
           return
         }
 
@@ -98,6 +101,7 @@ class App extends React.Component {
         this.socket.on("connect_error", (err) => {
           if (err.message === "invalid username") {
             this.setState({ error: config.MESSAGE.ERROR.USER_INVALID })
+            event.target[event.target.length -1].disabled = false;
           }
         })
 
