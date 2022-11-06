@@ -7,7 +7,7 @@ import Button from "react-bootstrap/Button"
 // Config vars
 const config = require("../config")
 
-const Online = ({ users, handleChallenge, id }) => {
+const Online = ({ users, games, handleChallenge, id }) => {
   // Use state to toggle players panel
   const [showPanel, setShowPanel] = useState(false)
 
@@ -16,9 +16,19 @@ const Online = ({ users, handleChallenge, id }) => {
 
   let options = null
   if (users) {
+
+    users.forEach(user => {
+      games.forEach(game => {
+        if(game.opponent_id === user.userID){
+          user.opponent_score = game.opponent_score
+          user.our_score = game.our_score
+        }
+      });
+    });
+
     options = users.map((user) => (
       <div key={user.userID} value={user.userID}>
-        {user.username}
+        {user.username} {user.our_score && "(" + user.our_score + "-" + user.opponent_score + ")"} 
         <Button
           size="sm"
           className="ms-1"

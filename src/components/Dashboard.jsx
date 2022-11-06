@@ -62,7 +62,7 @@ class Dashboard extends React.Component {
     )
 
     // Exit if no users
-    if (onlineUsers.length < 0) return
+    if (onlineUsers.length < 1) return
 
     // Sort list alphabetically
     onlineUsers = onlineUsers.sort((a, b) => {
@@ -122,6 +122,7 @@ class Dashboard extends React.Component {
 
             <Online
               users={this.state.onlineUsers}
+              games={this.state.games}
               handleChallenge={this.props.handleChallenge}
               id={this.state.id}
             />
