@@ -13,6 +13,7 @@ import Online from "./Online"
 // Bootstrap components
 import Container from "react-bootstrap/Container"
 import ListGroup from "react-bootstrap/ListGroup"
+import Button from "react-bootstrap/esm/Button"
 
 // Config vars
 const config = require("../config")
@@ -25,6 +26,7 @@ class Dashboard extends React.Component {
   state = {
     ...this.props.state,
     games: null,
+    rooms: null,
     onlineUsers: null,
     showChallenge: false,
   }
@@ -48,7 +50,8 @@ class Dashboard extends React.Component {
   }
 
   // When we first login the server will send us a list of online users, handle the list
-  handleUserList = (users) => {
+  handleUserList = (users, rooms) => {
+    console.log("still receiving users...", users, rooms)
     let id = this.props.state.id
 
     // Remove us from the list
@@ -71,6 +74,7 @@ class Dashboard extends React.Component {
 
     // Set list of users into state
     if (onlineUsers.length > 0) this.setState({ onlineUsers })
+    if (rooms.length > 0) this.setState({ rooms })
   }
 
   // Handle socket notification that a new user has logged in
@@ -89,6 +93,13 @@ class Dashboard extends React.Component {
     // Add user to our list in state
     this.setState({
       onlineUsers: [...(this.state.onlineUsers || []), user],
+    })
+  }
+
+  createRoom = () => {
+    this.socket.emit("createRoom", (rooms) => {
+      console.log(rooms)
+      this.setState({ rooms })
     })
   }
 
@@ -127,11 +138,25 @@ class Dashboard extends React.Component {
               id={this.state.id}
             />
 
+            <h2>Rooms</h2>
+            <ListGroup>
+              <RoomList
+                rooms={this.state.rooms}
+              />
+            </ListGroup>
+            <Button
+              size="sm"
+              className="ms-1"
+              onClick={ this.createRoom }
+            >
+              Create room
+            </Button>
+            
+
             <h2>Previous Games</h2>
             <ListGroup>
               <GameList
                 games={this.state.games}
-                handleChallenge={this.props.handleChallenge}
               />
             </ListGroup>
           </div>
@@ -141,7 +166,7 @@ class Dashboard extends React.Component {
   }
 }
 
-const GameList = ({ games, handleChallenge }) => {
+const GameList = ({ games }) => {
   if (!games) return <p>{config.MESSAGE.GAMES.NONE}</p>
   return games.map((game) => (
     <ListGroup.Item
@@ -149,6 +174,15 @@ const GameList = ({ games, handleChallenge }) => {
       variant={game.our_score > game.opponent_score ? "success" : "danger"}
     >
       {game.opponent_name} ({game.opponent_score}) - ({game.our_score})
+    </ListGroup.Item>
+  ))
+}
+
+const RoomList = ({ rooms }) => {
+  if (!rooms) return <p>{config.MESSAGE.ROOMS.NONE}</p>
+  return rooms.map((room) => (
+    <ListGroup.Item key={room.name}>
+      {room.name}
     </ListGroup.Item>
   ))
 }

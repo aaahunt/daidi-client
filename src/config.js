@@ -83,6 +83,9 @@ config.MESSAGE = {
     NONE: "There are currently no online users. Try to refresh?",
     ONLY_YOU: "You're the only person online! You can't play with yourself.",
   },
+  ROOMS: {
+    NONE: "There are currently no active rooms."
+  },
   CONFIRM: {
     QUIT: "Are you sure you want to quit",
     RESIGN: "Are you sure you want to resign"
