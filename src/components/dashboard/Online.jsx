@@ -5,7 +5,7 @@ import Offcanvas from "react-bootstrap/Offcanvas"
 import Button from "react-bootstrap/Button"
 
 // Config vars
-const config = require("../config")
+const config = require("../../config")
 
 const Online = ({ users, games, handleChallenge, id }) => {
   // Use state to toggle players panel
@@ -16,21 +16,22 @@ const Online = ({ users, games, handleChallenge, id }) => {
 
   let options = null
   if (users) {
-
-    if(games){
-      users.forEach(user => {
-        games.forEach(game => {
-          if(game.opponent_id === user.userID){
-            user.hasHistory = true;
+    if (games) {
+      users.forEach((user) => {
+        games.forEach((game) => {
+          if (game.opponent_id === user.userID) {
+            user.hasHistory = true
             user.opponent_score = game.opponent_score
             user.our_score = game.our_score
           }
-        });
-      });
+        })
+      })
     }
     options = users.map((user) => (
       <div key={user.userID} value={user.userID}>
-        {user.username} {user.hasHistory && "(" + user.our_score + "-" + user.opponent_score + ")"} 
+        {user.username}{" "}
+        {user.hasHistory &&
+          "(" + user.our_score + "-" + user.opponent_score + ")"}
         <Button
           size="sm"
           className="ms-1"

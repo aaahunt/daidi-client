@@ -10,12 +10,12 @@ import axios from "axios"
 import { SocketContext } from "./context/socket"
 
 // Components used within App
-import Home from "./components/Home"
-import Rules from "./components/Rules"
-import Login from "./components/Login"
-import Register from "./components/Register"
-import Dashboard from "./components/Dashboard"
-import Game from "./components/Game"
+import Home from "./components/pages/Home"
+import Rules from "./components/pages/Rules"
+import Login from "./components/pages/Login"
+import Register from "./components/pages/Register"
+import Dashboard from "./components/dashboard/Dashboard"
+import Game from "./components/game/Game"
 import Navigation from "./components/Navigation"
 
 // Config vars
@@ -84,14 +84,14 @@ class App extends React.Component {
   userLogin = (event) => {
     let [username, password] = this.formInit(event)
 
-    event.target[event.target.length -1].disabled = true; // Disable the last form element, hopefully the submit button
+    event.target[event.target.length - 1].disabled = true // Disable the last form element, hopefully the submit button
 
     axios
       .post(config.URL.SERVER + "/login", { username, password })
       .then((res) => {
         if (!res.data.user) {
           this.setState({ error: res.data })
-          event.target[event.target.length -1].disabled = false;
+          event.target[event.target.length - 1].disabled = false
           return
         }
 
@@ -101,7 +101,7 @@ class App extends React.Component {
         this.socket.on("connect_error", (err) => {
           if (err.message === "invalid username") {
             this.setState({ error: config.MESSAGE.ERROR.USER_INVALID })
-            event.target[event.target.length -1].disabled = false;
+            event.target[event.target.length - 1].disabled = false
           }
         })
 
@@ -257,7 +257,7 @@ class App extends React.Component {
           </Route>
 
           <Route path="/register">
-            {this.state.id !== null  ? (
+            {this.state.id !== null ? (
               <Redirect to="/dashboard" />
             ) : (
               <Register

@@ -4,10 +4,10 @@ import React from "react"
 import axios from "axios"
 
 // Socket IO Context
-import { SocketContext } from "../context/socket"
+import { SocketContext } from "../../context/socket"
 
 // Components
-import Notifications from "./notifications/Notifications"
+import Notifications from "../notifications/Notifications"
 import Online from "./Online"
 
 // Bootstrap components
@@ -16,7 +16,7 @@ import ListGroup from "react-bootstrap/ListGroup"
 import Button from "react-bootstrap/esm/Button"
 
 // Config vars
-const config = require("../config")
+const config = require("../../config")
 
 class Dashboard extends React.Component {
   // Retrieve socketIO object from context
@@ -103,6 +103,13 @@ class Dashboard extends React.Component {
     })
   }
 
+  joinRoom = (roomName) => {
+    this.socket.emit("joinRoom", roomName, (rooms) => {
+      console.log(rooms)
+      this.setState({ rooms })
+    })
+  }
+
   render() {
     let socketStatus = this.socket.connected ? "online" : "offline"
     return (
@@ -140,24 +147,15 @@ class Dashboard extends React.Component {
 
             <h2>Rooms</h2>
             <ListGroup>
-              <RoomList
-                rooms={this.state.rooms}
-              />
+              <RoomList rooms={this.state.rooms} joinRoom={this.joinRoom}/>
             </ListGroup>
-            <Button
-              size="sm"
-              className="ms-1"
-              onClick={ this.createRoom }
-            >
+            <Button size="sm" className="ms-1" onClick={this.createRoom}>
               Create room
             </Button>
-            
 
             <h2>Previous Games</h2>
             <ListGroup>
-              <GameList
-                games={this.state.games}
-              />
+              <GameList games={this.state.games} />
             </ListGroup>
           </div>
         </div>
@@ -178,11 +176,18 @@ const GameList = ({ games }) => {
   ))
 }
 
-const RoomList = ({ rooms }) => {
+const RoomList = ({ rooms, joinRoom }) => {
   if (!rooms) return <p>{config.MESSAGE.ROOMS.NONE}</p>
   return rooms.map((room) => (
     <ListGroup.Item key={room.name}>
       {room.name}
+      <Button
+        size="sm"
+        className="ms-1"
+        onClick={() => joinRoom(room.name)}
+      >
+        Join
+      </Button>
     </ListGroup.Item>
   ))
 }

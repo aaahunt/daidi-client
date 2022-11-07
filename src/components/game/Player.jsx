@@ -1,4 +1,4 @@
-import Emojis from "./notifications/Emojis"
+import Emojis from "../notifications/Emojis"
 
 const Player = (props) => {
   return (

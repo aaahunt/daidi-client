@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom"
 import Container from "react-bootstrap/Container"
 
 // Config vars
-const config = require("../config")
+const config = require("../../config")
 
 const Home = (props) => {
   const history = useHistory()

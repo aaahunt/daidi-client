@@ -7,16 +7,16 @@ import axios from "axios"
 import { Link } from "react-router-dom"
 
 // Socket IO Context
-import { SocketContext } from "../context/socket"
+import { SocketContext } from "../../context/socket"
 
 // Components
 import Board from "./Board"
 import Opponent from "./Opponent"
 import Player from "./Player"
-import Modals from "./notifications/Modals"
+import Modals from "../notifications/Modals"
 
 // Config vars
-const config = require("../config")
+const config = require("../../config")
 
 class Game extends React.Component {
   // Retrieve our socket from context
@@ -119,7 +119,7 @@ class Game extends React.Component {
   }
 
   resign = () => {
-    if(!window.confirm(config.MESSAGE.CONFIRM.RESIGN)) return;
+    if (!window.confirm(config.MESSAGE.CONFIRM.RESIGN)) return
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
@@ -136,7 +136,7 @@ class Game extends React.Component {
   }
 
   quitGame = () => {
-    if(!window.confirm(config.MESSAGE.CONFIRM.QUIT)) return;
+    if (!window.confirm(config.MESSAGE.CONFIRM.QUIT)) return
     this.socket.emit("action", "quit", this.state.opponent.id)
     this.leaveGame()
   }
@@ -176,11 +176,11 @@ class Game extends React.Component {
   }
 
   handleLoss = () => {
-    
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
-    setTimeout(() => { // Wait a couple seconds before we acknowledge the defeat
+    setTimeout(() => {
+      // Wait a couple seconds before we acknowledge the defeat
       this.setState((prevState) => ({
         ...prevState,
         showRematch: true,
@@ -264,11 +264,11 @@ class Game extends React.Component {
   // Toggle between hands sorted by rank or suit
   toggleHandSorting = () => {
     const currentSort = this.state.sortOrder
-    const switchTo = (currentSort === "rank") ? "suit" : "rank"
-    const propertyToFind = (currentSort === "rank") ? "suitValue" : "value"
+    const switchTo = currentSort === "rank" ? "suit" : "rank"
+    const propertyToFind = currentSort === "rank" ? "suitValue" : "value"
 
     const sortedHand = this.state.hand.sort((a, b) => {
-      return (a[propertyToFind] < b[propertyToFind]) ? -1 : 1
+      return a[propertyToFind] < b[propertyToFind] ? -1 : 1
     })
 
     this.setState((prevState) => ({
@@ -300,7 +300,13 @@ class Game extends React.Component {
     axios
       .post(config.URL.SERVER + "/win", { id, opponent, points })
       .then((res) => {
-        console.log("Successfully added points to database", res, id, opponent, points)
+        console.log(
+          "Successfully added points to database",
+          res,
+          id,
+          opponent,
+          points
+        )
       })
       .catch((err) => {
         this.setState({ error: err.message })
@@ -323,9 +329,9 @@ class Game extends React.Component {
   }
 
   determinePoints = (n) => {
-    return (n === 13)
+    return n === 13
       ? n * config.GAME.TOP_MULTIPLIER
-      : (n > 9)
+      : n > 9
       ? n * config.GAME.MIDDLE_MULTIPLIER
       : n * config.GAME.BOTTOM_MULTIPLIER
   }
