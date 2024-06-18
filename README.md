@@ -1,4 +1,4 @@
-<h1 className="display-5 fw-bold">Dai Di (Big Two) Rules</h1>
+<h1 className="display-5 fw-bold">Dai Di (Big Two) Rules!</h1>
 
 <p>
 The game is intended for four players but can also be played with
