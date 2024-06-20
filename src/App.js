@@ -1,66 +1,65 @@
-import React from "react"
-
-// React Router DOM for links/routing
-import { Switch, Route, withRouter, Redirect } from "react-router-dom"
-
-// Axios library for simplified HTTP requests
+import React, { useEffect, useContext, useState } from "react"
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom"
 import axios from "axios"
-
-// Socket IO Context
 import { SocketContext } from "./context/socket"
-
-// Components used within App
-import Home from "./components/pages/Home"
-import Rules from "./components/pages/Rules"
-import Login from "./components/pages/Login"
-import Register from "./components/pages/Register"
-import Dashboard from "./components/dashboard/Dashboard"
-import Game from "./components/game/Game"
+import Home from "./components/Home"
+import Rules from "./components/Rules"
+import Login from "./components/Login"
+import Register from "./components/Register"
+import Dashboard from "./components/Dashboard"
+import Game from "./components/Game"
 import Navigation from "./components/Navigation"
+import config from "./config"
 
-// Config vars
-const config = require("./config")
+const App = () => {
+  const socket = useContext(SocketContext)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [state, setState] = useState(config.APP_INIT_STATE)
 
-class App extends React.Component {
-  // Retrieve socketIO object from context
-  static contextType = SocketContext
-  socket = this.context
+  useEffect(() => {
+    setStateUsingCookies()
 
-  // Initialise our state
-  state = config.APP_INIT_STATE
+    socket.on("challenge", handleIncomingChallenge)
+    socket.on("accepted", startGame)
+    socket.on("disconnect", userLogout)
+    socket.on("decline", opponentDeclined)
 
-  componentDidMount() {
-    // Upon component refresh fetch user ID and challenge from session storage
-    this.setStateUsingCookies()
+    return () => {
+      socket.offAny()
+    }
+  })
 
-    // Add socket listeners
-    this.socket.on("challenge", this.handleIncomingChallenge)
-    this.socket.on("accepted", this.startGame)
-    this.socket.on("disconnect", this.userLogout)
-    this.socket.on("decline", this.opponentDeclined)
+  const updateState = (newState) => {
+    setState((prevState) => ({ ...prevState, ...newState }))
   }
 
-  // Housekeeping, remove socket listeners upon component end of lifecycle
-  componentWillUnmount() {
-    this.socket.offAny()
+  const setError = (error) => {
+    setState((prevState) => ({ ...prevState, error }))
   }
 
-  // Inform user that the opponent declined their challenge
-  opponentDeclined = () => {
-    this.setState({ message: config.MESSAGE.DECLINE })
+  const opponentDeclined = () => {
+    updateState({ message: config.MESSAGE.DECLINE })
   }
 
-  // Handle user registration request
-  userRegister = (event) => {
-    let [username, password] = this.formInit(event)
+  const userRegister = (event) => {
+    let [username, password] = formInit(event)
 
-    if (username.length < 3)
-      return this.setState({ error: config.MESSAGE.ERROR.USER_SHORT })
+    if (username.length < 3) {
+      setError(config.MESSAGE.ERROR.USER_SHORT)
+      return
+    }
 
     const regex = new RegExp(config.GAME.PASS_REGEX)
 
     if (!regex.test(password)) {
-      this.setState({ error: config.MESSAGE.ERROR.PASSWORD })
+      setError(config.MESSAGE.ERROR.PASSWORD)
       return
     }
 
@@ -68,238 +67,199 @@ class App extends React.Component {
       .post(config.URL.SERVER + "/register", { username, password })
       .then((res) => {
         sessionStorage.setItem("user", res.data.user._id)
-        this.setState({ username, id: res.data.user._id, error: null }, () => {
-          this.props.history.push({
-            pathname: config.URL.DASHBOARD,
-            state: this.state,
-          })
-        })
+        updateState({ username, id: res.data.user._id, error: null })
       })
-      .catch((err) => {
-        this.setState({ error: config.MESSAGE.ERROR.TAKEN })
+      .catch(() => {
+        setError(config.MESSAGE.ERROR.TAKEN)
       })
   }
 
-  // Handle user login request
-  userLogin = (event) => {
-    let [username, password] = this.formInit(event)
+  const userLogin = (event) => {
+    let [username, password] = formInit(event)
 
-    event.target[event.target.length - 1].disabled = true // Disable the last form element, hopefully the submit button
+    event.target[event.target.length - 1].disabled = true
 
     axios
       .post(config.URL.SERVER + "/login", { username, password })
       .then((res) => {
         if (!res.data.user) {
-          this.setState({ error: res.data })
+          updateState({ error: res.data, username: null, id: null })
           event.target[event.target.length - 1].disabled = false
           return
         }
 
-        this.socket.auth = { username, id: res.data.user._id }
-        this.socket.connect()
+        socket.auth = { username, id: res.data.user._id }
+        socket.connect()
 
-        this.socket.on("connect_error", (err) => {
+        socket.on("connect_error", (err) => {
           if (err.message === "invalid username") {
-            this.setState({ error: config.MESSAGE.ERROR.USER_INVALID })
+            updateState({ error: config.MESSAGE.ERROR.USER_INVALID })
             event.target[event.target.length - 1].disabled = false
           }
         })
 
         sessionStorage.setItem("user", res.data.user._id)
-        this.setState({ username, id: res.data.user._id, error: null }, () => {
-          this.props.history.push(config.URL.DASHBOARD, { state: this.state })
-        })
+        updateState({ username, id: res.data.user._id, error: null })
       })
-      .catch((err) => {
-        this.setState({
-          error: config.MESSAGE.ERROR.SERVER,
-        })
+      .catch(() => {
+        console.log("Server error")
+        updateState({ error: config.MESSAGE.ERROR.SERVER })
       })
   }
 
-  formInit = (event) => {
+  const formInit = (event) => {
     event.preventDefault()
     return [event.target.username.value, event.target.password.value]
   }
 
-  // Handle user logout
-  userLogout = () => {
-    this.socket.disconnect()
+  const userLogout = () => {
+    socket.disconnect()
     sessionStorage.removeItem("user")
-    this.removeChallenge()
-    this.setState({ id: null, username: null }, () => {
-      this.props.history.push(config.URL.LOGIN)
-    })
+    removeChallenge()
+    setState(config.APP_INIT_STATE)
   }
 
-  // Retrieve user ID and challenges from session memory
-  setStateUsingCookies = () => {
-    if (this.state.id !== null) return
+  const setStateUsingCookies = () => {
+    if (state.id !== null) return
 
     const user = sessionStorage.getItem("user")
     if (!user) return
 
-    // If we stored the user ID, get remaining user information
     axios
       .get(config.URL.SERVER + "/user?id=" + user)
       .then((res) => {
-        this.setState({
-          id: res.data[0]._id,
-          username: res.data[0].username,
-        })
-        this.socket.auth = {
+        updateState({ id: res.data[0]._id, username: res.data[0].username })
+        socket.auth = {
           id: res.data[0]._id,
           username: res.data[0].username,
         }
-        this.socket.connect()
+        socket.connect()
       })
-      .catch((err) => {
-        console.log(err)
-      })
+      .catch(console.log)
 
-    this.getChallenge()
+    getChallenge()
   }
 
-  getChallenge = () => {
-    // If they have a challenge, retrieve it from cookies
+  const getChallenge = () => {
     const challengeID = sessionStorage.getItem("challengeID")
     const challengeUser = sessionStorage.getItem("challengeUser")
 
     if (challengeID && challengeUser)
-      this.setState({
-        challenge: {
-          id: challengeID,
-          username: challengeUser,
-        },
-      })
+      updateState({ challenge: { id: challengeID, username: challengeUser } })
   }
 
-  // Handle a challenge offer to ID
-  challengeUser = (id) => {
-    this.socket.emit("challenge", id, (res) => {
-      this.setState({
-        message: res,
-      })
+  const challengeUser = (id) => {
+    socket.emit("challenge", id, (res) => {
+      updateState({ message: res })
     })
   }
 
-  // Handle incmoming challenge from socket
-  handleIncomingChallenge = (id, username) => {
+  const handleIncomingChallenge = (id, username) => {
     sessionStorage.setItem("challengeID", id)
     sessionStorage.setItem("challengeUser", username)
-    this.setState({ challenge: { id, username } })
+    updateState({ challenge: { id, username } })
   }
 
-  // Emit a challenge decline
-  declineChallenge = () => {
-    this.socket.emit("action", "decline", this.state.challenge.id)
-    this.removeChallenge()
+  const declineChallenge = () => {
+    socket.emit("action", "decline", state.challenge.id)
+    removeChallenge()
   }
 
-  // Emit an acceptance and start game
-  acceptChallenge = () => {
-    this.socket.emit("accept", this.state.challenge.id, (response) => {
-      this.startGame(response)
+  const acceptChallenge = () => {
+    socket.emit("accept", state.challenge.id, (response) => {
+      startGame(response)
     })
   }
 
-  // Clear message box
-  clearMessage = () => {
-    this.setState({ message: null })
+  const clearMessage = () => {
+    updateState({ message: null })
   }
 
-  // Use response from server (hands and first player) to begin a new game
-  startGame = (response) => {
-    this.removeChallenge()
-
-    this.setState({ message: null })
-
-    this.props.history.push({
-      pathname: config.URL.GAME,
-      state: response,
+  const startGame = (response) => {
+    console.log("Starting game", response)
+    removeChallenge()
+    setState((prevState) => {
+      const newState = { ...prevState, ...response, challenge: null }
+      console.log("Navigating to game", newState)
+      navigate(config.URL.GAME, { state: newState })
+      return newState
     })
+
+    // navigate(config.URL.GAME, state)
   }
 
-  // Remove challenge from state and session memory
-  removeChallenge = () => {
-    this.setState({ challenge: null })
+  const removeChallenge = () => {
+    updateState({ challenge: null })
     sessionStorage.removeItem("challengeID")
     sessionStorage.removeItem("challengeUser")
   }
 
-  render() {
-    const gameState = JSON.parse(sessionStorage.getItem("game"))
+  const gameState = JSON.parse(sessionStorage.getItem("game"))
 
-    return (
-      <React.Fragment>
-        {this.props.location.pathname !== "/play" && (
-          <Navigation
-            {...this.state}
-            {...this.props}
-            handleLogout={this.userLogout}
-          />
-        )}
-        <Switch>
-          <Route exact path="/">
-            <Home {...this.props} state={this.state} />
-          </Route>
+  return (
+    <React.Fragment>
+      {location.pathname !== "/play" && (
+        <Navigation {...state} handleLogout={userLogout} />
+      )}
+      <Routes>
+        <Route path="/" element={<Home state={state} />} />
 
-          <Route path="/login">
-            {this.state.id !== null ? (
-              <Redirect to="/dashboard" />
+        <Route
+          path="/login"
+          element={
+            state.id !== null ? (
+              <Navigate to="/dashboard" />
             ) : (
-              <Login
-                {...this.props}
-                state={this.state}
-                handleSubmit={this.userLogin}
-              />
-            )}
-          </Route>
+              <Login state={state} handleSubmit={userLogin} />
+            )
+          }
+        />
 
-          <Route path="/register">
-            {this.state.id !== null ? (
-              <Redirect to="/dashboard" />
+        <Route
+          path="/register"
+          element={
+            state.id !== null ? (
+              <Navigate to="/dashboard" />
             ) : (
-              <Register
-                {...this.props}
-                state={this.state}
-                handleSubmit={this.userRegister}
-              />
-            )}
-          </Route>
+              <Register state={state} handleSubmit={userRegister} />
+            )
+          }
+        />
 
-          <Route path="/rules">
-            <Rules />
-          </Route>
+        <Route path="/rules" element={<Rules />} />
 
-          <Route path="/dashboard">
-            {this.state.id === null ? (
-              <Redirect to="/login" />
+        <Route
+          path="/dashboard"
+          element={
+            state.id === null ? (
+              <Navigate to="/login" />
             ) : gameState !== null ? (
-              <Redirect to="/play" />
+              <Navigate to="/play" />
             ) : (
               <Dashboard
-                {...this.props}
-                state={this.state}
-                handleChallenge={this.challengeUser}
-                acceptChallenge={this.acceptChallenge}
-                declineChallenge={this.declineChallenge}
-                clearMessage={this.clearMessage}
+                state={state}
+                handleChallenge={challengeUser}
+                acceptChallenge={acceptChallenge}
+                declineChallenge={declineChallenge}
+                clearMessage={clearMessage}
               />
-            )}
-          </Route>
+            )
+          }
+        />
 
-          <Route path="/play">
-            {this.state.id === null ? (
-              <Redirect to="/login" />
+        <Route
+          path="/play"
+          element={
+            state.id === null ? (
+              <Navigate to="/login" />
             ) : (
-              <Game {...this.props} state={this.state} />
-            )}
-          </Route>
-        </Switch>
-      </React.Fragment>
-    )
-  }
+              <Game state={state} />
+            )
+          }
+        />
+      </Routes>
+    </React.Fragment>
+  )
 }
 
-export default withRouter(App)
+export default App

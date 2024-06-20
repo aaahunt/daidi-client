@@ -22,7 +22,7 @@ config.GAME = {
   MIDDLE_MULTIPLIER: 2,
   BOTTOM_MULTIPLIER: 1,
   PASS_REGEX: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$",
-  WAIT_AFTER_LOSE: 2000
+  WAIT_AFTER_LOSE: 2000,
 }
 
 // Initial App State
@@ -42,6 +42,7 @@ config.GAME_INIT_STATE = {
   selected: [],
   sortOrder: "rank",
   board: null,
+  history: [],
   winner: null,
   error: null,
   emoji: null,
@@ -88,7 +89,7 @@ config.MESSAGE = {
   },
   CONFIRM: {
     QUIT: "Are you sure you want to quit",
-    RESIGN: "Are you sure you want to resign"
+    RESIGN: "Are you sure you want to resign",
   },
   CREATOR: "Created by Ashley Hunt",
 }

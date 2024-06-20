@@ -13,7 +13,8 @@ import { SocketContext } from "../../context/socket"
 import Board from "./Board"
 import Opponent from "./Opponent"
 import Player from "./Player"
-import Modals from "../notifications/Modals"
+import Modals from "./notifications/Modals"
+import withLocation from "./withLocation"
 
 // Config vars
 const config = require("../../config")
@@ -22,6 +23,7 @@ class Game extends React.Component {
   // Retrieve our socket from context
   static contextType = SocketContext
   socket = this.context
+  navigate = this.props.navigate
 
   state = {
     ...config.GAME_INIT_STATE,
@@ -90,7 +92,11 @@ class Game extends React.Component {
           emoji={this.state.emoji}
           setEmoji={this.setEmoji}
         />
-        <Board board={this.state.board} error={this.state.error} />
+        <Board
+          board={this.state.board}
+          history={this.state.history}
+          error={this.state.error}
+        />
 
         <Player
           {...this.state}
@@ -132,6 +138,7 @@ class Game extends React.Component {
         ...prevState.opponent,
         score: this.state.opponent.score + points,
       },
+      winnersPoints: points,
     }))
   }
 
@@ -145,7 +152,7 @@ class Game extends React.Component {
     sessionStorage.removeItem("game")
     this.setState(config.GAME_INIT_STATE)
     this.props.location.state = null
-    this.props.history.push(config.URL.DASHBOARD)
+    this.navigate(config.URL.DASHBOARD)
   }
 
   handleOpponentPlay = (hand) => {
@@ -166,6 +173,7 @@ class Game extends React.Component {
     this.setState((prevState) => ({
       ...prevState,
       board: null,
+      history: [],
       activePlayer: this.state.activePlayer === 1 ? 2 : 1,
       error: null,
       opponent: {
@@ -185,6 +193,7 @@ class Game extends React.Component {
         ...prevState,
         showRematch: true,
         winner: this.state.playerNumber === 1 ? 2 : 1,
+        winnersPoints: points,
         opponent: {
           ...prevState.opponent,
           score: this.state.opponent.score + points,
@@ -224,6 +233,7 @@ class Game extends React.Component {
         ...prevState,
         selected: [],
         board: null,
+        history: [],
         activePlayer: this.state.activePlayer === 1 ? 2 : 1,
         error: null,
         opponent: {
@@ -289,6 +299,7 @@ class Game extends React.Component {
       ...prevState,
       showOppLeft: true,
       winner: this.state.playerNumber,
+      winnersPoints: points,
     }))
   }
 
@@ -325,6 +336,7 @@ class Game extends React.Component {
       showRematch: true,
       winner: this.state.playerNumber,
       score: this.state.score + points,
+      winnersPoints: points,
     }))
   }
 
@@ -481,8 +493,20 @@ class Game extends React.Component {
 
   // Play the selected hand
   submitHand = (hand) => {
+    let sortedHand = hand.sort(this.byRank)
+
+    // If our hand is a straight containing a deuce we must sort it correctly
+    if (this.handRanking(hand) === 1 && hand.some((e) => e.rank === "2")) {
+      sortedHand = sortedHand.map((card) => {
+        if (card.rank === "2") card.rankValue = 2
+        if (card.rank === "A") card.rankValue = 1
+        return card
+      })
+      sortedHand = sortedHand.sort(this.byRank)
+    }
+
     // Emit our hand to opponent, if emit unsuccessful, we must win by default
-    this.socket.emit("play", hand, this.state.opponent.id, (res) => {
+    this.socket.emit("play", sortedHand, this.state.opponent.id, (res) => {
       if (res === "offline") {
         this.handleWin()
         return
@@ -491,7 +515,8 @@ class Game extends React.Component {
       this.setState(
         (prevState) => ({
           ...prevState,
-          board: hand.sort(this.byRank),
+          board: sortedHand,
+          history: [...prevState.history, prevState.board],
           activePlayer: this.state.activePlayer === 1 ? 2 : 1,
           hand: this.state.hand.filter((card) => {
             return !hand.includes(card)
@@ -592,4 +617,4 @@ class Game extends React.Component {
   }
 }
 
-export default Game
+export default withLocation(Game)

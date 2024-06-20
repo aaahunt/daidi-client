@@ -1,4 +1,4 @@
-import { useHistory } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 // Bootstrap Components
 import Container from "react-bootstrap/Container"
@@ -7,7 +7,7 @@ import Container from "react-bootstrap/Container"
 const config = require("../../config")
 
 const Home = (props) => {
-  const history = useHistory()
+  const navigate = useNavigate()
 
   return (
     <Container>
@@ -16,14 +16,14 @@ const Home = (props) => {
           <img src="dai-di-logo.svg" alt="Dai Di" width="340" height="340" />
           <div className="vstack gap-2 col-md-5 mx-auto">
             <button
-              onClick={() => history.push(config.URL.LOGIN)}
+              onClick={() => navigate(config.URL.LOGIN)}
               type="button"
               className="btn btn-danger"
             >
               Login
             </button>
             <button
-              onClick={() => history.push(config.URL.REGISTER)}
+              onClick={() => navigate(config.URL.REGISTER)}
               type="button"
               className="btn btn-warning"
             >

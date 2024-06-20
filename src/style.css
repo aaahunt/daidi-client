@@ -1,3 +1,9 @@
+body {
+  user-select: none; /* Standard syntax */
+  -webkit-user-select: none; /* Chrome, Safari, Opera */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+}
 main {
   height: 100vh;
 }
@@ -35,6 +41,15 @@ main {
   width: 9vw;
   margin: 20px 1px;
   box-shadow: 3px 3px 6px 0px #00000029;
+}
+.cards-played{
+  position: absolute;
+  opacity: 0.5;
+  top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 .opponent-card:first-of-type {
   margin-left: 0;
@@ -92,6 +107,9 @@ img {
   justify-content: center;
   position: absolute;
   bottom: 10px;
+}
+.invalid{
+  color: red;
 }
 
 @keyframes slide-out-top {
