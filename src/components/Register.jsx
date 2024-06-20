@@ -12,7 +12,7 @@ const Register = (props) => {
     const password = document.getElementById("password").value
 
     // Define the four regexes that password need to satisfy
-    const minLength = new RegExp("^\\w{8,}$")
+    const minLength = new RegExp("^.{8,}$")
     const oneUpper = new RegExp("[A-Z]")
     const oneLower = new RegExp("[a-z]")
     const oneNumber = new RegExp("[0-9]")
@@ -20,10 +20,28 @@ const Register = (props) => {
     let count = 0
 
     // Increment counter every time we pass a test
-    if (minLength.test(password)) count++
-    if (oneUpper.test(password)) count++
-    if (oneLower.test(password)) count++
-    if (oneNumber.test(password)) count++
+    if (minLength.test(password)) {
+      document
+        .getElementsByClassName("characters")[0]
+        .classList.remove("invalid")
+      count++
+    }
+    if (oneUpper.test(password)) {
+      document
+        .getElementsByClassName("uppercase")[0]
+        .classList.remove("invalid")
+      count++
+    }
+    if (oneLower.test(password)) {
+      document
+        .getElementsByClassName("lowercase")[0]
+        .classList.remove("invalid")
+      count++
+    }
+    if (oneNumber.test(password)) {
+      document.getElementsByClassName("number")[0].classList.remove("invalid")
+      count++
+    }
 
     document.getElementById("passwordStrength").value = count
   }
@@ -36,10 +54,10 @@ const Register = (props) => {
 
           <p>Password must contain at least:</p>
           <ul>
-            <li>8 characters</li>
-            <li>1 uppercase letter</li>
-            <li>1 lowercase letter</li>
-            <li>1 number</li>
+            <li className="characters invalid">8 characters</li>
+            <li className="uppercase invalid">1 uppercase letter</li>
+            <li className="lowercase invalid">1 lowercase letter</li>
+            <li className="number invalid">1 number</li>
           </ul>
 
           <Form onSubmit={(e) => props.handleSubmit(e)}>

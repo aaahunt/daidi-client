@@ -15,8 +15,8 @@ const Modals = (props) => {
         <Modal.Header>
           <Modal.Title id="contained-modal-title-vcenter">
             {props.winner && props.winner === props.playerNumber
-              ? "You win!"
-              : "You lose :("}
+              ? `You win! You gain ${props.winnersPoints} points.`
+              : `You lose. Your opponent gains ${props.winnersPoints} points`}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>

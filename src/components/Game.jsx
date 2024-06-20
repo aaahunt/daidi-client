@@ -14,6 +14,7 @@ import Board from "./Board"
 import Opponent from "./Opponent"
 import Player from "./Player"
 import Modals from "./notifications/Modals"
+import withLocation from "./withLocation"
 
 // Config vars
 const config = require("../config")
@@ -22,6 +23,7 @@ class Game extends React.Component {
   // Retrieve our socket from context
   static contextType = SocketContext
   socket = this.context
+  navigate = this.props.navigate
 
   state = {
     ...config.GAME_INIT_STATE,
@@ -90,7 +92,11 @@ class Game extends React.Component {
           emoji={this.state.emoji}
           setEmoji={this.setEmoji}
         />
-        <Board board={this.state.board} error={this.state.error} />
+        <Board
+          board={this.state.board}
+          history={this.state.history}
+          error={this.state.error}
+        />
 
         <Player
           {...this.state}
@@ -119,7 +125,7 @@ class Game extends React.Component {
   }
 
   resign = () => {
-    if(!window.confirm(config.MESSAGE.CONFIRM.RESIGN)) return;
+    if (!window.confirm(config.MESSAGE.CONFIRM.RESIGN)) return
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
@@ -132,11 +138,12 @@ class Game extends React.Component {
         ...prevState.opponent,
         score: this.state.opponent.score + points,
       },
+      winnersPoints: points,
     }))
   }
 
   quitGame = () => {
-    if(!window.confirm(config.MESSAGE.CONFIRM.QUIT)) return;
+    if (!window.confirm(config.MESSAGE.CONFIRM.QUIT)) return
     this.socket.emit("action", "quit", this.state.opponent.id)
     this.leaveGame()
   }
@@ -145,7 +152,7 @@ class Game extends React.Component {
     sessionStorage.removeItem("game")
     this.setState(config.GAME_INIT_STATE)
     this.props.location.state = null
-    this.props.history.push(config.URL.DASHBOARD)
+    this.navigate(config.URL.DASHBOARD)
   }
 
   handleOpponentPlay = (hand) => {
@@ -166,6 +173,7 @@ class Game extends React.Component {
     this.setState((prevState) => ({
       ...prevState,
       board: null,
+      history: [],
       activePlayer: this.state.activePlayer === 1 ? 2 : 1,
       error: null,
       opponent: {
@@ -176,15 +184,16 @@ class Game extends React.Component {
   }
 
   handleLoss = () => {
-    
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
-    setTimeout(() => { // Wait a couple seconds before we acknowledge the defeat
+    setTimeout(() => {
+      // Wait a couple seconds before we acknowledge the defeat
       this.setState((prevState) => ({
         ...prevState,
         showRematch: true,
         winner: this.state.playerNumber === 1 ? 2 : 1,
+        winnersPoints: points,
         opponent: {
           ...prevState.opponent,
           score: this.state.opponent.score + points,
@@ -224,6 +233,7 @@ class Game extends React.Component {
         ...prevState,
         selected: [],
         board: null,
+        history: [],
         activePlayer: this.state.activePlayer === 1 ? 2 : 1,
         error: null,
         opponent: {
@@ -264,11 +274,11 @@ class Game extends React.Component {
   // Toggle between hands sorted by rank or suit
   toggleHandSorting = () => {
     const currentSort = this.state.sortOrder
-    const switchTo = (currentSort === "rank") ? "suit" : "rank"
-    const propertyToFind = (currentSort === "rank") ? "suitValue" : "value"
+    const switchTo = currentSort === "rank" ? "suit" : "rank"
+    const propertyToFind = currentSort === "rank" ? "suitValue" : "value"
 
     const sortedHand = this.state.hand.sort((a, b) => {
-      return (a[propertyToFind] < b[propertyToFind]) ? -1 : 1
+      return a[propertyToFind] < b[propertyToFind] ? -1 : 1
     })
 
     this.setState((prevState) => ({
@@ -289,6 +299,7 @@ class Game extends React.Component {
       ...prevState,
       showOppLeft: true,
       winner: this.state.playerNumber,
+      winnersPoints: points,
     }))
   }
 
@@ -300,7 +311,13 @@ class Game extends React.Component {
     axios
       .post(config.URL.SERVER + "/win", { id, opponent, points })
       .then((res) => {
-        console.log("Successfully added points to database", res, id, opponent, points)
+        console.log(
+          "Successfully added points to database",
+          res,
+          id,
+          opponent,
+          points
+        )
       })
       .catch((err) => {
         this.setState({ error: err.message })
@@ -319,13 +336,14 @@ class Game extends React.Component {
       showRematch: true,
       winner: this.state.playerNumber,
       score: this.state.score + points,
+      winnersPoints: points,
     }))
   }
 
   determinePoints = (n) => {
-    return (n === 13)
+    return n === 13
       ? n * config.GAME.TOP_MULTIPLIER
-      : (n > 9)
+      : n > 9
       ? n * config.GAME.MIDDLE_MULTIPLIER
       : n * config.GAME.BOTTOM_MULTIPLIER
   }
@@ -475,8 +493,20 @@ class Game extends React.Component {
 
   // Play the selected hand
   submitHand = (hand) => {
+    let sortedHand = hand.sort(this.byRank)
+
+    // If our hand is a straight containing a deuce we must sort it correctly
+    if (this.handRanking(hand) === 1 && hand.some((e) => e.rank === "2")) {
+      sortedHand = sortedHand.map((card) => {
+        if (card.rank === "2") card.rankValue = 2
+        if (card.rank === "A") card.rankValue = 1
+        return card
+      })
+      sortedHand = sortedHand.sort(this.byRank)
+    }
+
     // Emit our hand to opponent, if emit unsuccessful, we must win by default
-    this.socket.emit("play", hand, this.state.opponent.id, (res) => {
+    this.socket.emit("play", sortedHand, this.state.opponent.id, (res) => {
       if (res === "offline") {
         this.handleWin()
         return
@@ -485,7 +515,8 @@ class Game extends React.Component {
       this.setState(
         (prevState) => ({
           ...prevState,
-          board: hand.sort(this.byRank),
+          board: sortedHand,
+          history: [...prevState.history, prevState.board],
           activePlayer: this.state.activePlayer === 1 ? 2 : 1,
           hand: this.state.hand.filter((card) => {
             return !hand.includes(card)
@@ -586,4 +617,4 @@ class Game extends React.Component {
   }
 }
 
-export default Game
+export default withLocation(Game)
