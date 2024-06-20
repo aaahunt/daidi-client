@@ -27,6 +27,7 @@ class Dashboard extends React.Component {
     ...this.props.state,
     games: null,
     rooms: null,
+    in: null,
     onlineUsers: null,
     showChallenge: false,
   }
@@ -97,15 +98,13 @@ class Dashboard extends React.Component {
   }
 
   createRoom = () => {
-    this.socket.emit("createRoom", (rooms) => {
-      console.log(rooms)
-      this.setState({ rooms })
+    this.socket.emit("createRoom", (roomName, rooms) => {
+      this.setState({ rooms, in: roomName })
     })
   }
 
   joinRoom = (roomName) => {
     this.socket.emit("joinRoom", roomName, (rooms) => {
-      console.log(rooms)
       this.setState({ rooms })
     })
   }
@@ -147,7 +146,7 @@ class Dashboard extends React.Component {
 
             <h2>Rooms</h2>
             <ListGroup>
-              <RoomList rooms={this.state.rooms} joinRoom={this.joinRoom}/>
+              <RoomList rooms={this.state.rooms} joinRoom={this.joinRoom} inRoom={this.state.in}/>
             </ListGroup>
             <Button size="sm" className="ms-1" onClick={this.createRoom}>
               Create room
@@ -176,18 +175,18 @@ const GameList = ({ games }) => {
   ))
 }
 
-const RoomList = ({ rooms, joinRoom }) => {
+const RoomList = ({ rooms, joinRoom, inRoom }) => {
   if (!rooms) return <p>{config.MESSAGE.ROOMS.NONE}</p>
   return rooms.map((room) => (
     <ListGroup.Item key={room.name}>
       {room.name}
-      <Button
+      {!(inRoom !== room.name)  && <Button
         size="sm"
         className="ms-1"
         onClick={() => joinRoom(room.name)}
       >
         Join
-      </Button>
+      </Button>}
     </ListGroup.Item>
   ))
 }
