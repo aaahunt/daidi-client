@@ -19,7 +19,7 @@ const Online = ({ users, games, handleChallenge, id }) => {
     if (games) {
       users.forEach((user) => {
         games.forEach((game) => {
-          if (game.opponent_id === user.userID) {
+          if (game.opponent_id === user.user_id) {
             user.hasHistory = true
             user.opponent_score = game.opponent_score
             user.our_score = game.our_score
@@ -28,7 +28,7 @@ const Online = ({ users, games, handleChallenge, id }) => {
       })
     }
     options = users.map((user) => (
-      <div key={user.userID} value={user.userID}>
+      <div key={user.user_id} value={user.user_id}>
         {user.username}{" "}
         {user.hasHistory &&
           "(" + user.our_score + "-" + user.opponent_score + ")"}
@@ -36,7 +36,7 @@ const Online = ({ users, games, handleChallenge, id }) => {
           size="sm"
           className="ms-1"
           onClick={() => {
-            handleChallenge(user.userID)
+            handleChallenge(user.user_id)
             setShowPanel(false)
           }}
         >

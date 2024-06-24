@@ -3,7 +3,7 @@ import Emojis from "../notifications/Emojis"
 const Player = (props) => {
   return (
     <div id="actions" className="players-cards bg-dark p-2">
-      <Emojis opponent={props.opponent.id} />
+      <Emojis opponent={props.opponent.user_id} />
 
       <h3 className="p-2">
         {props.activePlayer === props.playerNumber ? (

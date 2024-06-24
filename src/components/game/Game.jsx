@@ -1,8 +1,5 @@
 import React from "react"
 
-// Axios library for simplified HTTP requests
-import axios from "axios"
-
 // React Router DOM for links/routing
 import { Link } from "react-router-dom"
 
@@ -13,8 +10,9 @@ import { SocketContext } from "../../context/socket"
 import Board from "./Board"
 import Opponent from "./Opponent"
 import Player from "./Player"
-import Modals from "./notifications/Modals"
-import withLocation from "./withLocation"
+import Modals from "../notifications/Modals"
+import withLocation from "../withLocation"
+import server from "../../context/serverInstance"
 
 // Config vars
 const config = require("../../config")
@@ -49,15 +47,15 @@ class Game extends React.Component {
   }
 
   getStateUsingCookies = () => {
-    const game = JSON.parse(sessionStorage.getItem("game"))
+    const game = JSON.parse(localStorage.getItem("game"))
     if (game && game.hand) this.setState(game)
   }
 
   // Use axios to fetch previous game data
   getPreviousScores() {
-    axios.get(config.URL.SERVER + "/games?id=" + this.state.id).then((res) => {
+    server.get("/games?id=" + this.state.user_id).then((res) => {
       res.data.forEach((el) => {
-        if (el.opponent_id === this.state.opponent.id)
+        if (el.opponent_id === this.state.opponent.user_id)
           this.setState((prevState) => ({
             ...prevState,
             score: el.our_score,
@@ -73,7 +71,7 @@ class Game extends React.Component {
   render() {
     // If we're in a game, update the new game state into cookies
     if (this.state.hand)
-      sessionStorage.setItem("game", JSON.stringify(this.state))
+      localStorage.setItem("game", JSON.stringify(this.state))
 
     if (!this.state.opponent)
       return (
@@ -129,7 +127,7 @@ class Game extends React.Component {
     // How many points did our opponent gain? Depends on how many cards we have left
     let points = this.determinePoints(this.state.hand.length)
 
-    this.socket.emit("action", "resign", this.state.opponent.id)
+    this.socket.emit("action", "resign", this.state.opponent.user_id)
     this.setState((prevState) => ({
       ...prevState,
       showRematch: true,
@@ -144,12 +142,12 @@ class Game extends React.Component {
 
   quitGame = () => {
     if (!window.confirm(config.MESSAGE.CONFIRM.QUIT)) return
-    this.socket.emit("action", "quit", this.state.opponent.id)
+    this.socket.emit("action", "quit", this.state.opponent.user_id)
     this.leaveGame()
   }
 
   leaveGame = () => {
-    sessionStorage.removeItem("game")
+    localStorage.removeItem("game")
     this.setState(config.GAME_INIT_STATE)
     this.props.location.state = null
     this.navigate(config.URL.DASHBOARD)
@@ -224,7 +222,7 @@ class Game extends React.Component {
 
   passTurn = () => {
     // Emit our action to opponent, if error response, we must win by default
-    this.socket.emit("action", "pass", this.state.opponent.id, (res) => {
+    this.socket.emit("action", "pass", this.state.opponent.user_id, (res) => {
       if (res === "error") {
         this.handleWin()
         return
@@ -305,11 +303,11 @@ class Game extends React.Component {
 
   // Update the database with the points we have won
   updateDatabase = (points) => {
-    let id = this.state.id
-    let opponent = this.state.opponent.id
+    let id = this.state.user_id
+    let opponent = this.state.opponent.user_id
 
-    axios
-      .post(config.URL.SERVER + "/win", { id, opponent, points })
+    server
+      .post("/win", { id, opponent, points })
       .then((res) => {
         console.log(
           "Successfully added points to database",
@@ -353,7 +351,7 @@ class Game extends React.Component {
     this.setState({ pressedOneMore: true })
     // If player is waiting, start the new game
     if (this.state.oneWaiting) {
-      this.socket.emit("accept", this.state.opponent.id, (response) => {
+      this.socket.emit("accept", this.state.opponent.user_id, (response) => {
         this.setState((prevState) => ({
           ...config.GAME_INIT_STATE,
           ...response,
@@ -367,7 +365,7 @@ class Game extends React.Component {
       })
       return
     }
-    this.socket.emit("action", "rematch", this.state.opponent.id)
+    this.socket.emit("action", "rematch", this.state.opponent.user_id)
     this.setState({ oneWaiting: true })
   }
 
@@ -506,7 +504,7 @@ class Game extends React.Component {
     }
 
     // Emit our hand to opponent, if emit unsuccessful, we must win by default
-    this.socket.emit("play", sortedHand, this.state.opponent.id, (res) => {
+    this.socket.emit("play", sortedHand, this.state.opponent.user_id, (res) => {
       if (res === "offline") {
         this.handleWin()
         return
@@ -531,7 +529,7 @@ class Game extends React.Component {
         }),
         () => {
           if (this.state.hand.length === 0) {
-            this.socket.emit("action", "win", this.state.opponent.id)
+            this.socket.emit("action", "win", this.state.opponent.user_id)
             this.handleWin()
           }
         }

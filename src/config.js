@@ -28,7 +28,7 @@ config.GAME = {
 // Initial App State
 config.APP_INIT_STATE = {
   username: null,
-  id: null,
+  user_id: null,
   opponent: null,
   error: null,
   challenge: null,

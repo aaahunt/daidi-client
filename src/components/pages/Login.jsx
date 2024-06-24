@@ -25,6 +25,7 @@ const Login = (props) => {
               type="password"
               id="password"
               placeholder="password"
+              autoComplete="off"
               required
               className="mb-1"
             />
