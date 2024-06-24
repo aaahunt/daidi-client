@@ -13,7 +13,7 @@ config.URL = {
   SERVER:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
       ? "http://localhost:4000"
-      : "https://daidi-server.herokuapp.com",
+      : "https://daidi.eu-west-2.elasticbeanstalk.com",
 }
 
 // Game Variables
@@ -85,7 +85,7 @@ config.MESSAGE = {
     ONLY_YOU: "You're the only person online! You can't play with yourself.",
   },
   ROOMS: {
-    NONE: "There are currently no active rooms."
+    NONE: "There are currently no active rooms.",
   },
   CONFIRM: {
     QUIT: "Are you sure you want to quit",
