@@ -28,7 +28,7 @@ config.GAME = {
 // Initial App State
 config.APP_INIT_STATE = {
   username: null,
-  id: null,
+  user_id: null,
   opponent: null,
   error: null,
   challenge: null,
@@ -83,6 +83,9 @@ config.MESSAGE = {
   PLAYERS: {
     NONE: "There are currently no online users. Try to refresh?",
     ONLY_YOU: "You're the only person online! You can't play with yourself.",
+  },
+  ROOMS: {
+    NONE: "There are currently no active rooms."
   },
   CONFIRM: {
     QUIT: "Are you sure you want to quit",

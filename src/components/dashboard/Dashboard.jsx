@@ -1,21 +1,22 @@
 import React from "react"
 
-// Axios library for simplified HTTP requests
-import axios from "axios"
-
 // Socket IO Context
-import { SocketContext } from "../context/socket"
+import { SocketContext } from "../../context/socket"
 
 // Components
-import Notifications from "./notifications/Notifications"
+import Notifications from "../notifications/Notifications"
 import Online from "./Online"
 
 // Bootstrap components
 import Container from "react-bootstrap/Container"
 import ListGroup from "react-bootstrap/ListGroup"
+import Button from "react-bootstrap/esm/Button"
+
+// Axios for API requests
+import server from "../../context/serverInstance"
 
 // Config vars
-const config = require("../config")
+const config = require("../../config")
 
 class Dashboard extends React.Component {
   // Retrieve socketIO object from context
@@ -25,17 +26,17 @@ class Dashboard extends React.Component {
   state = {
     ...this.props.state,
     games: null,
+    rooms: null,
+    in: null,
     onlineUsers: null,
     showChallenge: false,
   }
 
   componentDidMount() {
     // Fetch list of user's previous games
-    axios
-      .get(config.URL.SERVER + "/games?id=" + this.props.state.id)
-      .then((res) => {
-        this.setState({ games: res.data })
-      })
+    server.get("/games?id=" + this.props.state.user_id).then((res) => {
+      this.setState({ games: res.data })
+    })
 
     // Add socket listeners
     this.socket.on("users", this.handleUserList)
@@ -48,16 +49,16 @@ class Dashboard extends React.Component {
   }
 
   // When we first login the server will send us a list of online users, handle the list
-  handleUserList = (users) => {
-    let id = this.props.state.id
+  handleUserList = (users, rooms) => {
+    let id = this.props.state.user_id
 
     // Remove us from the list
-    let onlineUsers = users.filter((each) => each.userID !== id)
+    let onlineUsers = users.filter((each) => each.user_id !== id)
 
     // Check for duplicates & remove them
-    onlineUsers = Array.from(new Set(onlineUsers.map((a) => a.userID))).map(
+    onlineUsers = Array.from(new Set(onlineUsers.map((a) => a.user_id))).map(
       (id) => {
-        return onlineUsers.find((a) => a.userID === id)
+        return onlineUsers.find((a) => a.user_id === id)
       }
     )
 
@@ -71,6 +72,7 @@ class Dashboard extends React.Component {
 
     // Set list of users into state
     if (onlineUsers.length > 0) this.setState({ onlineUsers })
+    if (rooms.length > 0) this.setState({ rooms })
   }
 
   // Handle socket notification that a new user has logged in
@@ -80,7 +82,7 @@ class Dashboard extends React.Component {
     // Check if user is already in our list
     if (this.state.onlineUsers) {
       userExists = this.state.onlineUsers.find(
-        (each) => each.userID === user.userID
+        (each) => each.user_id === user.user_id
       )
     }
 
@@ -89,6 +91,18 @@ class Dashboard extends React.Component {
     // Add user to our list in state
     this.setState({
       onlineUsers: [...(this.state.onlineUsers || []), user],
+    })
+  }
+
+  createRoom = () => {
+    this.socket.emit("createRoom", (roomName, rooms) => {
+      this.setState({ rooms, in: roomName })
+    })
+  }
+
+  joinRoom = (roomName) => {
+    this.socket.emit("joinRoom", roomName, (rooms) => {
+      this.setState({ rooms })
     })
   }
 
@@ -124,15 +138,24 @@ class Dashboard extends React.Component {
               users={this.state.onlineUsers}
               games={this.state.games}
               handleChallenge={this.props.handleChallenge}
-              id={this.state.id}
+              id={this.state.user_id}
             />
+
+            <h2>Rooms</h2>
+            <ListGroup>
+              <RoomList
+                rooms={this.state.rooms}
+                joinRoom={this.joinRoom}
+                inRoom={this.state.in}
+              />
+            </ListGroup>
+            <Button size="sm" className="ms-1" onClick={this.createRoom}>
+              Create room
+            </Button>
 
             <h2>Previous Games</h2>
             <ListGroup>
-              <GameList
-                games={this.state.games}
-                handleChallenge={this.props.handleChallenge}
-              />
+              <GameList games={this.state.games} />
             </ListGroup>
           </div>
         </div>
@@ -141,7 +164,7 @@ class Dashboard extends React.Component {
   }
 }
 
-const GameList = ({ games, handleChallenge }) => {
+const GameList = ({ games }) => {
   if (!games) return <p>{config.MESSAGE.GAMES.NONE}</p>
   return games.map((game) => (
     <ListGroup.Item
@@ -149,6 +172,20 @@ const GameList = ({ games, handleChallenge }) => {
       variant={game.our_score > game.opponent_score ? "success" : "danger"}
     >
       {game.opponent_name} ({game.opponent_score}) - ({game.our_score})
+    </ListGroup.Item>
+  ))
+}
+
+const RoomList = ({ rooms, joinRoom, inRoom }) => {
+  if (!rooms) return <p>{config.MESSAGE.ROOMS.NONE}</p>
+  return rooms.map((room) => (
+    <ListGroup.Item key={room.name}>
+      {room.name}
+      {!(inRoom !== room.name) && (
+        <Button size="sm" className="ms-1" onClick={() => joinRoom(room.name)}>
+          Join
+        </Button>
+      )}
     </ListGroup.Item>
   ))
 }

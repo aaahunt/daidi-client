@@ -1,7 +1,7 @@
-import Emoji from "./notifications/Emoji"
+import Emoji from "../notifications/Emoji"
 
 // Config vars
-import { MESSAGE } from "../config"
+import { MESSAGE } from "../../config"
 
 const Opponent = (props) => {
   return (

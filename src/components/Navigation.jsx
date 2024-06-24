@@ -16,7 +16,7 @@ const Navigation = (props) => {
   const [expanded, setExpanded] = useState(false)
 
   // if ID is set, must be logged in - show logged in Nav
-  if (!(props.id === null))
+  if (!(props.user_id === null))
     return (
       <>
         <Navbar
