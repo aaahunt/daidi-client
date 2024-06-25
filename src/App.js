@@ -127,6 +127,10 @@ const App = () => {
   }
 
   const setStateUsingCookies = () => {
+    server.get("/users").then((res) => {
+      console.log(res.data)
+    })
+
     if (state.access_token) return
 
     const access_token = localStorage.getItem("access_token")
