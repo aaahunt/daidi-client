@@ -13,7 +13,7 @@ config.URL = {
   SERVER:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
       ? "http://localhost:4000"
-      : "https://daidi.eu-west-2.elasticbeanstalk.com",
+      : "http://new-daidi-server.eba-hfvhepns.eu-west-2.elasticbeanstalk.com",
 }
 
 // Game Variables
