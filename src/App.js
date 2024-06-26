@@ -49,11 +49,15 @@ const App = () => {
     setState((prevState) => ({ ...prevState, error }))
   }
 
+  const clearError = () => {
+    setError(null)
+  }
+
   const opponentDeclined = () => {
     updateState({ message: config.MESSAGE.DECLINE })
   }
 
-  const userRegister = (event) => {
+  const userRegister = (event, passwordStrength) => {
     event.preventDefault()
     const username = event.target.username.value
     const password = event.target.password.value
@@ -63,11 +67,12 @@ const App = () => {
       return
     }
 
-    const regex = new RegExp(config.GAME.PASS_REGEX)
-    if (!regex.test(password)) {
+    if (passwordStrength < config.PASSWORD_STRENGTH.MIN_STRENGTH) {
       setError(config.MESSAGE.ERROR.PASSWORD)
       return
     }
+
+    clearError()
 
     server
       .post("/register", { username, password })
@@ -127,10 +132,6 @@ const App = () => {
   }
 
   const setStateUsingCookies = () => {
-    server.get("/users").then((res) => {
-      console.log(res.data)
-    })
-
     if (state.access_token) return
 
     const access_token = localStorage.getItem("access_token")
@@ -220,7 +221,11 @@ const App = () => {
             state.user_id !== null ? (
               <Navigate to="/dashboard" />
             ) : (
-              <Login state={state} handleSubmit={handleLogin} />
+              <Login
+                state={state}
+                clearError={clearError}
+                handleSubmit={handleLogin}
+              />
             )
           }
         />
@@ -231,7 +236,11 @@ const App = () => {
             state.user_id !== null ? (
               <Navigate to="/dashboard" />
             ) : (
-              <Register state={state} handleSubmit={userRegister} />
+              <Register
+                state={state}
+                clearError={clearError}
+                handleSubmit={userRegister}
+              />
             )
           }
         />

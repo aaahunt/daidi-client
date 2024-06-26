@@ -1,4 +1,5 @@
 // Bootstrap Components
+import React, { useEffect } from "react"
 import Container from "react-bootstrap/Container"
 import Button from "react-bootstrap/Button"
 import Form from "react-bootstrap/Form"
@@ -6,6 +7,10 @@ import Alert from "react-bootstrap/Alert"
 
 const Login = (props) => {
   const { error } = props.state
+
+  useEffect(() => {
+    props.clearError()
+  }, [])
 
   return (
     <Container>
