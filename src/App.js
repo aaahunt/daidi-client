@@ -76,7 +76,10 @@ const App = () => {
 
     server
       .post("/register", { username, password })
-      .then(userLogin(username, password))
+      .then((res) => {
+        console.log(res.data)
+        userLogin(username, password)
+      })
       .catch((error) => {
         if (error.response && error.response.status === 409) {
           setError(config.MESSAGE.ERROR.TAKEN)
