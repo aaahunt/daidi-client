@@ -53,7 +53,7 @@ class Game extends React.Component {
 
   // Use axios to fetch previous game data
   getPreviousScores() {
-    server.get("/games?id=" + this.state.user_id).then((res) => {
+    server.get("/auth/games?id=" + this.state.user_id).then((res) => {
       res.data.forEach((el) => {
         if (el.opponent_id === this.state.opponent.user_id)
           this.setState((prevState) => ({
@@ -307,7 +307,7 @@ class Game extends React.Component {
     let opponent = this.state.opponent.user_id
 
     server
-      .post("/win", { id, opponent, points })
+      .post("/auth/win", { id, opponent, points })
       .then((res) => {
         console.log(
           "Successfully added points to database",

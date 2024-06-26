@@ -34,7 +34,7 @@ class Dashboard extends React.Component {
 
   componentDidMount() {
     // Fetch list of user's previous games
-    server.get("/games?id=" + this.props.state.user_id).then((res) => {
+    server.get("/auth/games?id=" + this.props.state.user_id).then((res) => {
       this.setState({ games: res.data })
     })
 
