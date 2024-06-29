@@ -1,14 +1,11 @@
 import { useState } from "react"
 
-// Bootstrap components
 import Offcanvas from "react-bootstrap/Offcanvas"
 import Button from "react-bootstrap/Button"
 
-// Config vars
 const config = require("../../config")
 
 const Online = ({ users, games, handleChallenge, id }) => {
-  // Use state to toggle players panel
   const [showPanel, setShowPanel] = useState(false)
 
   const handleClose = () => setShowPanel(false)

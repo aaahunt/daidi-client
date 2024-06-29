@@ -8,7 +8,7 @@ config.URL = {
   LOGIN: "/login",
   DASHBOARD: "/dashboard",
   REGISTER: "/register",
-  GAME: "/play",
+  ROOM: "/room",
   RULES: "/rules",
   SERVER:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
@@ -21,7 +21,6 @@ config.GAME = {
   TOP_MULTIPLIER: 3,
   MIDDLE_MULTIPLIER: 2,
   BOTTOM_MULTIPLIER: 1,
-  PASS_REGEX: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$",
   WAIT_AFTER_LOSE: 2000,
 }
 
@@ -72,6 +71,10 @@ config.MESSAGE = {
     FOUR_CARDS: "You can't play four cards, silly",
     INVALID_HAND: "That's not a valid poker hand",
     NOT_BEAT_BOARD: "That hand does not beat the board",
+  },
+  SUCCESS: {
+    REGISTER: "You have successfully registered!",
+    LOGOUT: "You have successfully logged out.",
   },
   CHALLENGE: {
     INCOMING: " has challenged you. What do you say?",

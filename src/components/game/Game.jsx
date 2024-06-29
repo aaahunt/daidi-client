@@ -1,9 +1,5 @@
 import React from "react"
-
-// React Router DOM for links/routing
 import { Link } from "react-router-dom"
-
-// Socket IO Context
 import { SocketContext } from "../../context/socket"
 
 // Components
@@ -12,13 +8,14 @@ import Opponent from "./Opponent"
 import Player from "./Player"
 import Modals from "../notifications/Modals"
 import withLocation from "../withLocation"
-import server from "../../context/serverInstance"
+import server from "../../context/axios"
+
+import { byRank, modeCard } from "../../utils/handOrdering"
 
 // Config vars
 const config = require("../../config")
 
 class Game extends React.Component {
-  // Retrieve our socket from context
   static contextType = SocketContext
   socket = this.context
   navigate = this.props.navigate
@@ -53,19 +50,26 @@ class Game extends React.Component {
 
   // Use axios to fetch previous game data
   getPreviousScores() {
-    server.get("/auth/games?id=" + this.state.user_id).then((res) => {
-      res.data.forEach((el) => {
-        if (el.opponent_id === this.state.opponent.user_id)
-          this.setState((prevState) => ({
-            ...prevState,
-            score: el.our_score,
-            opponent: {
-              ...prevState.opponent,
-              score: el.opponent_score,
-            },
-          }))
+    server
+      .get("/auth/games", { params: { opponent: this.state.opponent.user_id } })
+      .then((res) => {
+        console.log("games", res.data)
+        if (!res.data) return
+        res.data.forEach((el) => {
+          if (el.opponent_id === this.state.opponent.user_id)
+            this.setState((prevState) => ({
+              ...prevState,
+              score: el.our_score,
+              opponent: {
+                ...prevState.opponent,
+                score: el.opponent_score,
+              },
+            }))
+        })
       })
-    })
+      .catch((err) => {
+        console.log(err)
+      })
   }
 
   render() {
@@ -373,8 +377,12 @@ class Game extends React.Component {
     const numCards = this.state.selected.length
     let boardRank = 0
 
-    // If trying to play zero cards, return
     if (numCards < 1) return
+
+    if (numCards === 4) {
+      this.setState({ error: config.MESSAGE.ERROR.FOUR_CARDS })
+      return
+    }
 
     // If there is a board, check our submission is the same number of cards, if not return
     if (this.state.board && this.state.board.length !== numCards) {
@@ -389,12 +397,6 @@ class Game extends React.Component {
         return
       }
       this.setState({ error: config.MESSAGE.ERROR.NOT_ALLOWED })
-      return
-    }
-
-    // Don't allow 4 card hands
-    if (numCards === 4) {
-      this.setState({ error: config.MESSAGE.ERROR.FOUR_CARDS })
       return
     }
 
@@ -476,9 +478,9 @@ class Game extends React.Component {
       // Full house and quads evaluated at the same time, just looking at the highest value card for the most occuring card
       case 3:
       case 4:
-        const modeCard = this.modeCard(this.state.selected)
-        const modeBoardCard = this.modeCard(this.state.board)
-        if (modeCard.value < modeBoardCard.value) {
+        const mode = modeCard(this.state.selected)
+        const modeBoardCard = modeCard(this.state.board)
+        if (mode.value < modeBoardCard.value) {
           this.setState({ error: config.MESSAGE.ERROR.NOT_BEAT_BOARD })
           return false
         }
@@ -491,7 +493,7 @@ class Game extends React.Component {
 
   // Play the selected hand
   submitHand = (hand) => {
-    let sortedHand = hand.sort(this.byRank)
+    let sortedHand = hand.sort(byRank)
 
     // If our hand is a straight containing a deuce we must sort it correctly
     if (this.handRanking(hand) === 1 && hand.some((e) => e.rank === "2")) {
@@ -500,7 +502,7 @@ class Game extends React.Component {
         if (card.rank === "A") card.rankValue = 1
         return card
       })
-      sortedHand = sortedHand.sort(this.byRank)
+      sortedHand = sortedHand.sort(byRank)
     }
 
     // Emit our hand to opponent, if emit unsuccessful, we must win by default
@@ -535,83 +537,6 @@ class Game extends React.Component {
         }
       )
     })
-  }
-
-  // Return the rank of our hand
-  // Invalid = 0, Straight = 1, Flush = 2, Full house = 3, Quads = 4, Straight flush = 5, Royal flush = 6
-  handRanking = (hand) => {
-    // If every card has the same suit, flush = true
-    const flush = hand.every((card) => card.suit === hand[0].suit)
-
-    // Get the number of unique card ranks in our hand
-    const unique = [...new Set(hand.map((card) => card.rankValue))]
-
-    // If there are only two unique cards in the hand we must have Full house or Quads
-    if (unique.length === 2) {
-      // Count the number of times the first card appears
-      let countFirst = hand.reduce((n, card) => {
-        return n + (card.rankValue === hand[0].rankValue)
-      }, 0)
-      // If count = 2 or 3 must be full house, else must be quads (because would be 1 or 4 cards)
-      if (countFirst === 2 || countFirst === 3) return 3 // Full house
-      return 4 // Quads
-    }
-
-    // Straights check
-    let straight = false
-    if (unique.length === 5) {
-      straight = this.checkForStraight(hand)
-    }
-
-    //Royal flush
-    let containsAceKing =
-      hand.some((e) => e.rank === "K") && hand.some((e) => e.rank === "A")
-    if (flush && straight && containsAceKing) return 6
-
-    // Straight flush
-    if (flush && straight) return 5
-
-    if (flush) return 2
-    if (straight) return 1
-    return 0
-  }
-
-  checkForStraight = (hand) => {
-    const sortedHand = hand.sort(this.byRank)
-
-    let straight = true
-    // loop through sorted hand and check that value increases
-    for (let i = 1; i < sortedHand.length; i++) {
-      if (sortedHand[i].rankValue !== sortedHand[i - 1].rankValue + 1) {
-        // Take into account straights containing a deuce
-        if (
-          (i === 3 || i === 4) &&
-          sortedHand[i].rankValue === sortedHand[i - 1].rankValue + 9
-        )
-          continue
-        straight = false
-        break
-      }
-    }
-    return straight
-  }
-
-  // Sorting function to sort by card rank value
-  byRank = (a, b) => {
-    if (a.rankValue > b.rankValue) return 1
-    if (a.rankValue < b.rankValue) return -1
-    return 0
-  }
-
-  // Utility function to find the most common occuring card in an array of cards
-  modeCard = (cards) => {
-    return [...cards]
-      .sort(
-        (a, b) =>
-          cards.filter((v) => v.rank === a.rank).length -
-          cards.filter((v) => v.rank === b.rank).length
-      )
-      .pop()
   }
 }
 

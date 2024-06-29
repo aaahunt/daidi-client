@@ -1,22 +1,30 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { SocketContext } from "../context/socket"
 
-// React Router DOM for links/routing
-import { Link } from "react-router-dom"
-
-// Bootstrap Components
 import Navbar from "react-bootstrap/Navbar"
 import Nav from "react-bootstrap/Nav"
 import Container from "react-bootstrap/Container"
 
-// Config vars
+import useIsAuthenticated from "react-auth-kit/hooks/useIsAuthenticated"
+import useSignOut from "react-auth-kit/hooks/useSignOut"
+
 const config = require("../config")
 
-const Navigation = (props) => {
-  // Use state for menu collapsed or not
+const Navigation = () => {
   const [expanded, setExpanded] = useState(false)
+  const isAuthenticated = useIsAuthenticated()
+  const signOut = useSignOut()
+  const socket = useContext(SocketContext)
+  const navigate = useNavigate()
 
-  // if ID is set, must be logged in - show logged in Nav
-  if (!(props.user_id === null))
+  const logout = () => {
+    signOut()
+    socket.disconnect()
+    navigate(config.URL.HOME)
+  }
+
+  if (isAuthenticated)
     return (
       <>
         <Navbar
@@ -43,9 +51,24 @@ const Navigation = (props) => {
               onClick={() => setExpanded(expanded ? false : "expanded")}
             />
             <Navbar.Collapse id="responsive-navbar-nav">
-              <Nav className="me-auto"></Nav>
+              <Nav className="me-auto">
+                <Link
+                  to={config.URL.DASHBOARD}
+                  className="nav-link"
+                  onClick={() => setExpanded(false)}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to={config.URL.RULES}
+                  className="nav-link"
+                  onClick={() => setExpanded(false)}
+                >
+                  Rules
+                </Link>
+              </Nav>
               <Nav>
-                <Nav.Link onClick={props.handleLogout}>Logout</Nav.Link>
+                <Nav.Link onClick={() => logout()}>Logout</Nav.Link>
               </Nav>
             </Navbar.Collapse>
           </Container>

@@ -1,12 +1,10 @@
 import { useNavigate } from "react-router-dom"
 
-// Bootstrap Components
 import Container from "react-bootstrap/Container"
 
-// Config vars
 const config = require("../../config")
 
-const Home = (props) => {
+const Home = () => {
   const navigate = useNavigate()
 
   return (
