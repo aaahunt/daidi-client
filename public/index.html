@@ -2,33 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Dai Di - The big Two - Game by Ashley Hunt"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link
-      rel="manifest"
-      href="%PUBLIC_URL%/manifest.json"
-      crossorigin="use-credentials"
-    />
+    <meta name="description" content="Dai Di - The big Two - Game by Ashley Hunt" />
+    <link rel="apple-touch-icon" href="logo192.png" />
+    <link rel="manifest" href="manifest.json" crossorigin="use-credentials" />
     <title>Dai Di - Game by Ashley Hunt</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <input type="hidden" value="%NODE_ENV%" id="node_env_mode" />
-    <script>
-      var mode = document.querySelector("#node_env_mode").value
-      if (
-        mode === "production" &&
-        typeof window.__REACT_DEVTOOLS_GLOBAL_HOOK__ === "object"
-      ) {
-        window.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = function () {}
-      }
-    </script>
+    <script src="bundle.js"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
-import React from "react"
 import { useParams } from "react-router-dom"
-import Board from "../game/Board"
-import Opponent from "../game/Opponent"
+
+import Board from "components/game/Board"
+import Opponent from "components/game/Opponent"
 
 const Room = () => {
   const { name } = useParams()

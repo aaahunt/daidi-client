@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom"
 
 import Container from "react-bootstrap/Container"
 
-const config = require("../../config")
+import config from "config"
 
 const Home = () => {
   const navigate = useNavigate()
@@ -13,18 +13,10 @@ const Home = () => {
         <div className="d-flex align-items-center flex-column text-center p-3 rounded-0">
           <img src="dai-di-logo.svg" alt="Dai Di" width="340" height="340" />
           <div className="vstack gap-2 col-md-5 mx-auto">
-            <button
-              onClick={() => navigate(config.URL.LOGIN)}
-              type="button"
-              className="btn btn-danger"
-            >
+            <button onClick={() => navigate(config.URL.LOGIN)} type="button" className="btn btn-danger">
               Login
             </button>
-            <button
-              onClick={() => navigate(config.URL.REGISTER)}
-              type="button"
-              className="btn btn-warning"
-            >
+            <button onClick={() => navigate(config.URL.REGISTER)} type="button" className="btn btn-warning">
               Register
             </button>
           </div>

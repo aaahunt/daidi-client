@@ -4,12 +4,12 @@ import { BrowserRouter } from "react-router-dom"
 import createStore from "react-auth-kit/createStore"
 import AuthProvider from "react-auth-kit"
 
-import { SocketContext, socket } from "./context/socket"
+import { SocketContext, socket } from "context/socket"
 
 import "bootstrap/dist/css/bootstrap.min.css"
-import "./style.css"
+import "style.css"
 
-import App from "./App"
+import App from "App"
 
 const container = document.getElementById("root")
 const root = createRoot(container)

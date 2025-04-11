@@ -22,18 +22,24 @@ const Dashboard = () => {
     if (!isAuthenticated) navigate("/login")
     connectSocket(authHeader)
 
-    socket.on("rooms", (rooms) => setRooms(rooms))
+    socket.on("games", (games) => {
+      console.log(games, "games")
+      setRooms(games)
+    })
 
     return () => {
       socket.offAny()
     }
   })
 
-  // const joinRoom = (roomName) => {
-  //   socket.emit("joinRoom", roomName, (rooms) => {
-  //     setRooms(rooms)
-  //   })
-  // }
+  const joinRoom = (roomName, seatNumber) => {
+    console.log("joinRoom", roomName, seatNumber)
+
+    socket.emit("joinRoom", roomName, seatNumber, (res) => {
+      console.log(res, "joinRoom callback")
+      //   setRooms(rooms)
+    })
+  }
 
   let socketStatus = socket.connected ? "online" : "offline"
   return (
@@ -43,16 +49,12 @@ const Dashboard = () => {
           <h1 className="display-5 fw-bold">Dashboard</h1>
           <h3>
             Welcome, {auth.username}
-            <img
-              src={`${socketStatus}.svg`}
-              alt={socketStatus}
-              title={socketStatus}
-            />
+            <img src={`${socketStatus}.svg`} alt={socketStatus} title={socketStatus} />
           </h3>
 
           <h2>Rooms</h2>
           <ListGroup>
-            <RoomList rooms={rooms} />
+            <RoomList rooms={rooms} joinRoom={joinRoom} />
           </ListGroup>
 
           <h2>Previous Games</h2>

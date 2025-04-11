@@ -4,9 +4,10 @@ import Button from "react-bootstrap/Button"
 import Form from "react-bootstrap/Form"
 import Alert from "react-bootstrap/Alert"
 import { passwordStrength } from "check-password-strength"
-import config from "../../config"
 
-import server from "../../context/axios"
+import config from "config"
+
+import server from "context/axios"
 
 const Register = (props) => {
   const [alertVariant, setMessageType] = useState("danger")
@@ -49,10 +50,7 @@ const Register = (props) => {
   }
 
   useEffect(() => {
-    const strengthResult = passwordStrength(
-      password,
-      config.PASSWORD_STRENGTH.BOUNDARIES
-    )
+    const strengthResult = passwordStrength(password, config.PASSWORD_STRENGTH.BOUNDARIES)
     setStrength(strengthResult.id)
   }, [password])
 

@@ -9,8 +9,8 @@ import Alert from "react-bootstrap/Alert"
 
 import useSignIn from "react-auth-kit/hooks/useSignIn"
 
-import server from "../../context/axios"
-import config from "../../config"
+import server from "context/axios"
+import config from "config"
 
 const Login = () => {
   const [error, setError] = useState("")

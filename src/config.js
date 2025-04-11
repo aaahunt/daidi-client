@@ -1,8 +1,5 @@
 var config = {}
 
-config.PROCESS = process.env
-
-// URLs
 config.URL = {
   HOME: "/",
   LOGIN: "/login",
@@ -10,13 +7,9 @@ config.URL = {
   REGISTER: "/register",
   ROOM: "/room",
   RULES: "/rules",
-  SERVER:
-    !process.env.NODE_ENV || process.env.NODE_ENV === "development"
-      ? "http://localhost:4000"
-      : "https://server.dai-di.com",
+  SERVER: process.env.API_URL,
 }
 
-// Game Variables
 config.GAME = {
   TOP_MULTIPLIER: 3,
   MIDDLE_MULTIPLIER: 2,
@@ -24,7 +17,6 @@ config.GAME = {
   WAIT_AFTER_LOSE: 2000,
 }
 
-// Initial App State
 config.APP_INIT_STATE = {
   username: null,
   user_id: null,
@@ -34,7 +26,6 @@ config.APP_INIT_STATE = {
   message: null,
 }
 
-// Initial Game State
 config.GAME_INIT_STATE = {
   opponent: null,
   score: 0,
@@ -46,14 +37,12 @@ config.GAME_INIT_STATE = {
   error: null,
   emoji: null,
 
-  // For modals
   showRematch: false,
   showOppLeft: false,
   oneWaiting: false,
   pressedOneMore: false,
 }
 
-// Messages
 config.MESSAGE = {
   DECLINE: {
     header: "Declined",
@@ -127,4 +116,4 @@ config.PASSWORD_STRENGTH = {
   ],
 }
 
-module.exports = config
+export default config

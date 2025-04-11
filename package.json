@@ -22,11 +22,17 @@
     "web-vitals": "^4.1.1"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.16.0"
+    "@babel/plugin-proposal-private-property-in-object": "^7.16.0",
+    "@babel/preset-react": "^7.26.3",
+    "dotenv-webpack": "^8.1.0",
+    "webpack": "^5.99.5",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "webpack serve --mode development",
+    "build-dev": "webpack --mode development",
+    "build": "webpack --mode production",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
