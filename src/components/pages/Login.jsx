@@ -6,7 +6,7 @@ import Button from "react-bootstrap/Button"
 import Form from "react-bootstrap/Form"
 import Alert from "react-bootstrap/Alert"
 
-import { loginRequest } from "modules/authentication/actions"
+import { authenticate } from "modules/authentication/actions"
 import { authErrorSelector } from "modules/authentication/selectors"
 
 import config from "config"
@@ -20,7 +20,7 @@ const Login = () => {
     const username = event.target.username.value
     const password = event.target.password.value
 
-    dispatch(loginRequest({ username, password }))
+    dispatch(authenticate({ username, password }))
   }
 
   return (

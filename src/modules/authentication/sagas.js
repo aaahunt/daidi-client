@@ -1,15 +1,23 @@
 import { put, takeEvery, fork, delay, take, race } from "redux-saga/effects"
 import { push as redirect } from "redux-first-history"
 
-import { connect as connectSocket } from "modules/socket/actions"
+import { connectSocket } from "modules/socket/actions"
 import config from "config"
 
-import { loginRequest, loginSuccess, loginFailure, logout, authenticateUserApi } from "./actions"
+import {
+  authenticate,
+  loginSuccess,
+  loginFailure,
+  logout,
+  authenticateUserApi,
+  authenticateUserSuccess,
+  authenticateUserError,
+} from "./actions"
 import { setToken, getToken, removeToken } from "./utils"
 
 export default function* authSaga() {
   yield fork(handleInitialRedirect)
-  yield takeEvery(loginRequest, loginWorker)
+  yield takeEvery(authenticate, loginWorker)
   yield takeEvery(logout.type, logoutWorker)
 }
 
@@ -20,18 +28,16 @@ function* loginWorker(action) {
     yield put(authenticateUserApi({ username, password }))
 
     const result = yield race({
-      success: take(loginSuccess),
-      failure: take(loginFailure),
+      success: take(authenticateUserSuccess),
+      failure: take(authenticateUserError),
     })
 
     if (result.success) {
-      console.log("login success", result.success)
-      const { token } = result.success.payload
+      const { token } = result.success.payload.data
+      console.log("result.success", result.success.payload.data)
       if (!token) throw new Error("No token in response")
-      setToken(token)
-      yield put(redirect(config.URL.DASHBOARD))
-      yield put(loginSuccess(token))
-      yield put(connectSocket())
+
+      yield handleLoginSuccess(token)
     } else {
       yield put(loginFailure(result.failure.payload))
     }
@@ -42,12 +48,10 @@ function* loginWorker(action) {
 
 function* logoutWorker() {
   removeToken()
-  yield put(redirect(config.URL.LOGIN))
+  yield put(redirect(config.URL.HOME))
 }
 
 function* handleInitialRedirect() {
-  console.log("handleInitialRedirect")
-
   yield delay(250)
 
   const token = getToken()
@@ -59,6 +63,8 @@ function* handleInitialRedirect() {
 }
 
 function* handleLoginSuccess(token) {
+  console.log("handleLoginSuccess", token)
+  setToken(token)
   yield put(loginSuccess(token))
   yield put(connectSocket())
   yield put(redirect(config.URL.DASHBOARD))

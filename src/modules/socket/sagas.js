@@ -2,7 +2,7 @@ import { eventChannel } from "redux-saga"
 import { call, put, take, takeLatest, fork, select } from "redux-saga/effects"
 import io from "socket.io-client"
 
-import { socketConnected, socketDisconnected, receiveMessage, connect } from "./actions"
+import { socketConnected, socketDisconnected, receiveMessage, connectSocket } from "./actions"
 import { connectedSelector } from "./selectors"
 
 import config from "config"
@@ -75,7 +75,7 @@ function* handleSocketConnection() {
 }
 
 function* watchSocketConnect() {
-  yield takeLatest(connect, handleSocketConnection)
+  yield takeLatest(connectSocket, handleSocketConnection)
 }
 
 export default function* socketSaga() {

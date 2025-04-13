@@ -16,8 +16,8 @@ const Navigation = () => {
 
   const handleLogout = () => {
     console.log("handleLogout")
-    dispatch(logout())
     setExpanded(false)
+    dispatch(logout())
   }
 
   return (
