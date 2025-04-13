@@ -4,15 +4,22 @@ import sagaMiddleware from "middleware/saga"
 // Create Webpack context for all saga.js files in ./features
 const sagaContext = require.context("modules", true, /sagas\.js$/)
 
-export default function* rootSaga() {
-  const sagas = sagaContext
-    .keys()
-    .map((key) => {
-      const mod = sagaContext(key)
-      return mod.default || Object.values(mod)[0] // handle default or named export
-    })
-    .filter((sagaFn) => typeof sagaFn === "function")
+const resolvedSeen = new Set()
 
+const sagas = sagaContext
+  .keys()
+  .map((key) => {
+    const resolved = sagaContext.resolve(key)
+    if (resolvedSeen.has(resolved)) return null
+    resolvedSeen.add(resolved)
+
+    const mod = sagaContext(key)
+    const sagaFn = mod.default || Object.values(mod)[0]
+    return sagaFn
+  })
+  .filter((saga) => typeof saga === "function")
+
+export default function* rootSaga() {
   yield all(sagas.map((saga) => saga()))
 }
 

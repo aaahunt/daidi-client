@@ -32,12 +32,9 @@ function* loginWorker(action) {
       yield put(redirect(config.URL.DASHBOARD))
       yield put(loginSuccess(token))
       yield put(connectSocket())
+    } else {
+      yield put(loginFailure(result.failure.payload))
     }
-    // else if (result.failure) {
-    //   yield put(loginFailure(result.failure.payload))
-    // } else {
-    //   yield put(loginFailure("Login timed out"))
-    // }
   } catch (err) {
     yield put(loginFailure(err.response?.data || "Login failed"))
   }
