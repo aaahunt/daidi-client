@@ -47,12 +47,13 @@ function* loginWorker(action) {
 }
 
 function* logoutWorker() {
+  yield delay(10)
   removeToken()
   yield put(redirect(config.URL.HOME))
 }
 
 function* handleInitialRedirect() {
-  yield delay(250)
+  yield delay(10)
 
   const token = getToken()
   if (token) {
