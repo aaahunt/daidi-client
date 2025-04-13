@@ -1,47 +1,26 @@
-// Bootstrap Components
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import { Link } from "react-router-dom"
 
 import Container from "react-bootstrap/Container"
 import Button from "react-bootstrap/Button"
 import Form from "react-bootstrap/Form"
 import Alert from "react-bootstrap/Alert"
 
-import useSignIn from "react-auth-kit/hooks/useSignIn"
+import { loginRequest } from "modules/authentication/actions"
+import { authErrorSelector } from "modules/authentication/selectors"
 
-import server from "context/axios"
 import config from "config"
 
 const Login = () => {
-  const [error, setError] = useState("")
-  const signIn = useSignIn()
-  const navigate = useNavigate()
+  const authError = useSelector(authErrorSelector)
+  const dispatch = useDispatch()
 
   const onSubmit = (event) => {
     event.preventDefault()
     const username = event.target.username.value
     const password = event.target.password.value
 
-    server
-      .post("/login", { username, password })
-      .then((res) => {
-        if (!res.data.access_token) {
-          setError(res.data)
-          return
-        }
-
-        signIn({
-          auth: { token: res.data.access_token },
-          userState: { user_id: res.data.user_id, username },
-        })
-
-        navigate(config.URL.DASHBOARD, {
-          state: { token: res.data.access_token },
-        })
-      })
-      .catch(() => {
-        setError({ error: config.MESSAGE.ERROR.SERVER })
-      })
+    dispatch(loginRequest({ username, password }))
   }
 
   return (
@@ -69,8 +48,14 @@ const Login = () => {
             <Button variant="primary" type="submit">
               Login
             </Button>
+            <Button>
+              <Link to={config.URL.REGISTER} className="nav-link">
+                Register
+              </Link>
+            </Button>
           </Form>
-          {error && <Alert variant="danger">{error}</Alert>}
+
+          {authError && <Alert variant="danger">{authError}</Alert>}
         </div>
       </div>
     </Container>

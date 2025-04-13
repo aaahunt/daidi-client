@@ -1,32 +1,11 @@
-import React from "react"
 import { createRoot } from "react-dom/client"
-import { BrowserRouter } from "react-router-dom"
-import createStore from "react-auth-kit/createStore"
-import AuthProvider from "react-auth-kit"
 
-import { SocketContext, socket } from "context/socket"
+import Root from "./Root"
 
-import "bootstrap/dist/css/bootstrap.min.css"
-import "style.css"
+const root = createRoot(document.getElementById("root"))
 
-import App from "App"
+root.render(<Root />)
 
-const container = document.getElementById("root")
-const root = createRoot(container)
-
-const store = createStore({
-  authName: "_auth",
-  authType: "localStorage",
-})
-
-root.render(
-  <React.StrictMode>
-    <AuthProvider store={store}>
-      <SocketContext.Provider value={socket}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </SocketContext.Provider>
-    </AuthProvider>
-  </React.StrictMode>
-)
+if (import.meta.hot) {
+  import.meta.hot.accept()
+}

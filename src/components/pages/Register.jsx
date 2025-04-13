@@ -7,8 +7,6 @@ import { passwordStrength } from "check-password-strength"
 
 import config from "config"
 
-import server from "context/axios"
-
 const Register = (props) => {
   const [alertVariant, setMessageType] = useState("danger")
   const [alertMessage, setMessage] = useState("")
@@ -37,16 +35,16 @@ const Register = (props) => {
 
     setMessage("")
 
-    server
-      .post("/register", { username, password })
-      .then(showMessage(config.MESSAGE.SUCCESS.REGISTER, "success"))
-      .catch((error) => {
-        if (error.response && error.response.status === 409) {
-          showMessage(config.MESSAGE.ERROR.TAKEN, "danger")
-        } else {
-          showMessage(config.MESSAGE.ERROR.SERVER, "danger")
-        }
-      })
+    // server
+    //   .post("/register", { username, password })
+    //   .then(showMessage(config.MESSAGE.SUCCESS.REGISTER, "success"))
+    //   .catch((error) => {
+    //     if (error.response && error.response.status === 409) {
+    //       showMessage(config.MESSAGE.ERROR.TAKEN, "danger")
+    //     } else {
+    //       showMessage(config.MESSAGE.ERROR.SERVER, "danger")
+    //     }
+    //   })
   }
 
   useEffect(() => {

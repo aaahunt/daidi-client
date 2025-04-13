@@ -10,6 +10,11 @@ config.URL = {
   SERVER: process.env.API_URL,
 }
 
+config.API_ENDPOINTS = {
+  LOGIN: "/login",
+  REGISTER: "/register",
+}
+
 config.GAME = {
   TOP_MULTIPLIER: 3,
   MIDDLE_MULTIPLIER: 2,

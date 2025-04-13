@@ -22,7 +22,7 @@ module.exports = {
   entry: "./src/index.js",
   output: {
     filename: "bundle.js",
-    path: path.join(__dirname, "public"),
+    path: path.join(__dirname, "dist"),
   },
   resolve: {
     modules: [path.resolve(__dirname, "src"), "node_modules"],
@@ -47,7 +47,7 @@ module.exports = {
     port: 3000,
     compress: false,
     static: {
-      directory: path.join(__dirname, "public"),
+      directory: path.join(__dirname, "dist"),
     },
     hot: true,
     open: false,

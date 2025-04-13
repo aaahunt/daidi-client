@@ -12,14 +12,14 @@ main {
   z-index: 9;
 }
 #board {
-  background: url("./images/felt.png"), rgb(16, 110, 16);
+  background: url("static/images/felt.png"), rgb(16, 110, 16);
   min-height: 100px;
 }
 #actions {
-  background: url("./images/metal.png"), #212529;
+  background: url("static/images/metal.png"), #212529;
 }
 #opponent {
-  background: url("./images/metal.png"), #212529;
+  background: url("static/images/metal.png"), #212529;
 }
 #waiting {
   width: 90vw;

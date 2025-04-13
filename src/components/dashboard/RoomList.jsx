@@ -1,11 +1,20 @@
-import React, { useEffect, useState, useContext } from "react"
-import { useNavigate } from "react-router-dom"
+import { useSelector, useDispatch } from "react-redux"
 import ListGroup from "react-bootstrap/ListGroup"
 import Button from "react-bootstrap/esm/Button"
 
-const config = require("../../config")
+import { roomList } from "modules/app/selectors"
 
-const RoomList = ({ rooms, joinRoom }) => {
+import config from "config"
+
+const RoomList = () => {
+  const dispatch = useDispatch()
+  const rooms = useSelector(roomList)
+
+  const joinRoom = (room, seat) => {
+    console.log("joinRoom", room, seat)
+    dispatch(joinRoom(room, seat))
+  }
+
   if (!rooms) return <p>{config.MESSAGE.ROOMS.NONE}</p>
 
   return Object.entries(rooms).map(([room, game]) => (
