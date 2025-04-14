@@ -2,6 +2,7 @@ import { put, takeEvery, fork, delay, take, race } from "redux-saga/effects"
 import { push as redirect } from "redux-first-history"
 
 import { connectSocket } from "modules/socket/actions"
+import { notifyUser } from "modules/toast/actions"
 import config from "config"
 
 import {
@@ -43,6 +44,7 @@ function* loginWorker(action) {
     }
   } catch (err) {
     yield put(loginFailure(err.response?.data || "Login failed"))
+    yield put(notifyUser("Login failed", "error"))
   }
 }
 

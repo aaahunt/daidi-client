@@ -6,12 +6,13 @@ import { GameList } from "./GameList"
 
 import { isAuthenticatedSelector } from "modules/authentication/selectors"
 import { connectedSelector } from "modules/socket/selectors"
+import Loading from "components/control/Loading"
 
 const Dashboard = () => {
   const authenticated = useSelector(isAuthenticatedSelector)
   const socketConnected = useSelector(connectedSelector)
 
-  if (!authenticated) return <p>Loading...</p>
+  if (!authenticated) return <Loading />
 
   let socketStatus = socketConnected ? "online" : "offline"
   return (

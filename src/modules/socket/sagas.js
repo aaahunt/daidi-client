@@ -2,10 +2,11 @@ import { eventChannel } from "redux-saga"
 import { call, put, take, takeLatest, fork, select } from "redux-saga/effects"
 import io from "socket.io-client"
 
+import { getToken } from "modules/authentication/utils"
+import config from "config"
+
 import { socketConnected, socketDisconnected, receiveMessage, connectSocket } from "./actions"
 import { connectedSelector } from "./selectors"
-
-import config from "config"
 
 let socket
 
@@ -27,21 +28,16 @@ function createSocketChannel(socket) {
 }
 
 function* handleSocketConnection() {
-  console.log("handleSocketConnection")
-
   const connected = yield select(connectedSelector)
   if (connected) {
-    console.log("Already connected. Skipping socket connection.")
     return
   }
 
-  const rawToken = localStorage.getItem("token")
-  if (!rawToken) {
+  const token = getToken
+  if (!token) {
     console.warn("No auth token found. Skipping socket connection.")
     return
   }
-
-  const token = rawToken.includes(" ") ? rawToken.split(" ")[1] : rawToken
 
   socket = io(config.URL.SERVER, {
     autoConnect: false,

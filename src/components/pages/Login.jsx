@@ -4,16 +4,16 @@ import { Link } from "react-router-dom"
 import Container from "react-bootstrap/Container"
 import Button from "react-bootstrap/Button"
 import Form from "react-bootstrap/Form"
-import Alert from "react-bootstrap/Alert"
 
 import { authenticate } from "modules/authentication/actions"
-import { authErrorSelector } from "modules/authentication/selectors"
+import { isAuthenticatingSelector } from "modules/authentication/selectors"
 
 import config from "config"
+import Loading from "components/control/Loading"
 
-const Login = () => {
-  const authError = useSelector(authErrorSelector)
+export default function Login() {
   const dispatch = useDispatch()
+  const loading = useSelector(isAuthenticatingSelector)
 
   const onSubmit = (event) => {
     event.preventDefault()
@@ -21,6 +21,10 @@ const Login = () => {
     const password = event.target.password.value
 
     dispatch(authenticate({ username, password }))
+  }
+
+  if (loading) {
+    return <Loading />
   }
 
   return (
@@ -54,12 +58,8 @@ const Login = () => {
               </Link>
             </Button>
           </Form>
-
-          {authError && <Alert variant="danger">{authError}</Alert>}
         </div>
       </div>
     </Container>
   )
 }
-
-export default Login

@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom"
+
 import config from "config"
 
 import Home from "components/pages/Home"
@@ -8,6 +9,9 @@ import Register from "components/pages/Register"
 import Dashboard from "components/dashboard/Dashboard"
 import Room from "components/room/Room"
 import Navigation from "components/Navigation"
+import Toaster from "components/notifications/Toaster"
+
+import "react-toastify/dist/ReactToastify.css"
 
 export default function AppLayout() {
   return (
@@ -21,6 +25,7 @@ export default function AppLayout() {
         <Route path={config.URL.DASHBOARD} element={<Dashboard />} />
         <Route path={config.URL.ROOM + "/:name"} element={<Room />} />
       </Routes>
+      <Toaster />
     </>
   )
 }
