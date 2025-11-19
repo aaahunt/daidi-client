@@ -3,4 +3,7 @@ import slice from "./slice"
 
 export const { socketConnected, socketDisconnected, receiveMessage } = slice.actions
 
-export const connectSocket = createAction("socket/connect")
+// socket emits
+export const joinRoom = createAction("socket/joinRoom")
+export const leaveRoom = createAction("socket/leaveRoom")
+export const sendMessage = createAction("socket/sendMessage")

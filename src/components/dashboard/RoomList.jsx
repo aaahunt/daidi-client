@@ -3,6 +3,7 @@ import ListGroup from "react-bootstrap/ListGroup"
 import Button from "react-bootstrap/esm/Button"
 
 import { roomList } from "modules/app/selectors"
+import { joinRoom } from "modules/socket/actions"
 
 import config from "config"
 
@@ -10,12 +11,12 @@ const RoomList = () => {
   const dispatch = useDispatch()
   const rooms = useSelector(roomList)
 
-  const joinRoom = (room, seat) => {
+  const attemptJoin = (room, seat) => {
     console.log("joinRoom", room, seat)
-    dispatch(joinRoom(room, seat))
+    dispatch(joinRoom({ room, seat }))
   }
 
-  if (!rooms) return <p>{config.MESSAGE.ROOMS.NONE}</p>
+  if (rooms.length === 0) return <p>{config.MESSAGE.ROOMS.NONE}</p>
 
   return Object.entries(rooms).map(([room, game]) => (
     <ListGroup.Item key={room}>
@@ -23,7 +24,7 @@ const RoomList = () => {
       {game?.players?.map((player, i) => {
         if (player === null) {
           return (
-            <Button key={i} size="sm" className="ms-1" onClick={() => joinRoom(room, i)} style={{ float: "right" }}>
+            <Button key={i} size="sm" className="ms-1" onClick={() => attemptJoin(room, i)} style={{ float: "right" }}>
               Join Seat {i + 1}
             </Button>
           )

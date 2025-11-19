@@ -1,7 +1,6 @@
 import { put, takeEvery, fork, delay, take, race } from "redux-saga/effects"
 import { push as redirect } from "redux-first-history"
 
-import { connectSocket } from "modules/socket/actions"
 import { notifyUser } from "modules/toast/actions"
 import config from "config"
 
@@ -66,9 +65,7 @@ function* handleInitialRedirect() {
 }
 
 function* handleLoginSuccess(token) {
-  console.log("handleLoginSuccess", token)
   setToken(token)
   yield put(loginSuccess(token))
-  yield put(connectSocket())
   yield put(redirect(config.URL.DASHBOARD))
 }

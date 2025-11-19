@@ -7,13 +7,13 @@ import slice from "./slice"
 
 export const { loginInProgress, loginSuccess, loginFailure, logout } = slice.actions
 
-export const authenticate = createAction("auth/authenticate")
+export const authenticate = createAction("authentication/authenticate")
 
-export const authenticateUserSuccess = createAction("auth/authenticateApiSuccess", apiResponsePrepareAction)
-export const authenticateUserError = createAction("auth/authenticateApiError", apiErrorPrepareAction)
+export const authenticateUserSuccess = createAction("authentication/authenticateApiSuccess", apiResponsePrepareAction)
+export const authenticateUserError = createAction("authentication/authenticateApiError", apiErrorPrepareAction)
 
 export const authenticateUserApi = createAction(
-  "auth/authenticateApi",
+  "authentication/authenticateApi",
   apiCallPrepareActionBuilder(
     config.API_ENDPOINTS.LOGIN,
     "POST",

@@ -1,79 +1,49 @@
 import { eventChannel } from "redux-saga"
-import { call, put, take, takeLatest, fork, select } from "redux-saga/effects"
+import { call, put, take, takeLatest, fork, select, delay, apply } from "redux-saga/effects"
 import io from "socket.io-client"
+import { push as redirect } from "redux-first-history"
 
 import { getToken } from "modules/authentication/utils"
+import { logout } from "modules/authentication/actions"
+import { joinRoom, leaveRoom } from "modules/socket/actions"
+import { notifyUser } from "modules/toast/actions"
+
 import config from "config"
 
-import { socketConnected, socketDisconnected, receiveMessage, connectSocket } from "./actions"
+import { socketConnected, socketDisconnected, receiveMessage } from "./actions"
 import { connectedSelector } from "./selectors"
 
 let socket
 
-function createSocketChannel(socket) {
-  return eventChannel((emit) => {
-    socket.on("message", (data) => {
-      emit({ type: "SOCKET_MESSAGE_RECEIVED", payload: data })
-    })
-
-    socket.on("disconnect", () => {
-      emit({ type: "SOCKET_DISCONNECTED" })
-    })
-
-    return () => {
-      socket.off("message")
-      socket.off("disconnect")
-    }
-  })
-}
-
-function* handleSocketConnection() {
-  const connected = yield select(connectedSelector)
-  if (connected) {
-    return
-  }
-
-  const token = getToken
-  if (!token) {
-    console.warn("No auth token found. Skipping socket connection.")
-    return
-  }
-
-  socket = io(config.URL.SERVER, {
-    autoConnect: false,
-    auth: { token },
-  })
-
-  socket.connect()
-
-  const channel = yield call(createSocketChannel, socket)
-
-  yield put(socketConnected())
-
-  try {
-    while (true) {
-      const event = yield take(channel)
-      console.log("event", event)
-      switch (event.type) {
-        case "SOCKET_MESSAGE_RECEIVED":
-          yield put(receiveMessage(event.payload))
-          break
-        case "SOCKET_DISCONNECTED":
-          yield put(socketDisconnected())
-          break
-        default:
-          break
-      }
-    }
-  } finally {
-    console.log("Socket channel closed")
-  }
-}
-
-function* watchSocketConnect() {
-  yield takeLatest(connectSocket, handleSocketConnection)
-}
-
 export default function* socketSaga() {
-  yield fork(watchSocketConnect)
+  yield takeLatest(joinRoom, handleJoinRoom)
+  yield takeLatest(leaveRoom, handleLeaveRoom)
+}
+
+function* handleJoinRoom(action) {
+  if (!socket?.connected) return
+
+  const { room, seat } = action.payload
+
+  const res = yield emitWithAck(socket, "joinRoom", room, seat)
+
+  if (!res.success) {
+    yield put(notifyUser(res.message))
+  } else {
+    console.log("redirecting to /game/{room}")
+    yield put(redirect(config.URL.ROOM + "/" + room))
+  }
+}
+
+function handleLeaveRoom(action) {
+  if (!socket?.connected) return
+  socket.emit("leaveRoom", action.payload)
+}
+
+function emitWithAck(socket, event, ...args) {
+  return new Promise((resolve) => {
+    socket.emit(event, ...args, (response) => {
+      resolve(response)
+    })
+  })
 }
