@@ -9,6 +9,7 @@ export default createSlice({
   initialState,
   reducers: {
     setRooms: (state, action) => {
+      console.log("setting rooms", action.payload)
       state.rooms = action.payload
     },
   },

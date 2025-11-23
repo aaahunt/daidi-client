@@ -21,6 +21,11 @@ export const connectSocket = () => {
   }
 }
 
+export const getConnectedSocket = () => {
+  connectSocket()
+  return getSocket()
+}
+
 export const disconnectSocket = () => {
   if (socket && socket.connected) {
     socket.disconnect()

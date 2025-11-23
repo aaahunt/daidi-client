@@ -1,5 +1,3 @@
-import socketConfig from "modules/socket/config"
-
 import router from "./router"
 import saga from "./saga"
 import api from "./api"
@@ -12,6 +10,6 @@ const middlewareConfig = (getDefaultMiddleware) =>
     .concat(router)
     .concat(saga)
     .concat(api)
-    .concat(socketMiddleware(socketConfig))
+    .concat(socketMiddleware())
 
 export default middlewareConfig

@@ -1,48 +1,43 @@
-import { connectSocket, getSocket } from "modules/socket/client"
+import { getConnectedSocket } from "modules/socket/client"
+
+import { loginSuccess } from "modules/authentication/actions"
 
 const socketMiddleware = (config) => {
   let socket = null
-  let listenersAreMapped = false
 
   return (store) => (next) => (action) => {
-    if (action.type === config.authEvent && !socket) {
-      socket = getSocket()
-      connectSocket()
+    console.log("socket middleware ", action.type)
+    if (action.type === loginSuccess.type && !socket) {
+      console.log("socket middleware do stuff?", action.type)
+      socket = getConnectedSocket()
 
-      if (!listenersAreMapped) {
-        console.log("mapping listeners")
-        config.listeners.forEach((listener) => {
-          socket.on(listener.message, (message) => {
-            console.log("dispatching", listener.action(message))
-            store.dispatch(listener.action(message))
-          })
-        })
+      const originalOnevent = socket.onevent
 
-        socket.on("connect", () => {
-          console.log("🟢 CONNECTED", socket.id)
-        })
+      socket.onevent = function (packet) {
+        originalOnevent.call(this, packet)
 
-        socket.on("disconnect", (reason) => {
-          console.log("🔴 DISCONNECTED", reason)
-        })
+        const type = packet.data[0] // event name
+        const payload = packet.data[1] // event data
 
-        listenersAreMapped = true
+        console.log(`onevent: socket/${type}`, type, payload)
+
+        store.dispatch({ type: `socket/${type}`, payload })
       }
+
+      if (action.type.startsWith("socket")) {
+        console.log("okay we send the event", action.type, action.payload)
+
+        socket.emit(action.type.split("/")[1], action.payload)
+      }
+
+      socket.on("connect", () => {
+        console.log("🟢 CONNECTED", socket.id)
+      })
+
+      socket.on("disconnect", (reason) => {
+        console.log("🔴 DISCONNECTED", reason)
+      })
     }
-
-    config.subscribers.forEach((subscriber) => {
-      if (action.type === subscriber.action.type) {
-        console.log("emitting", subscriber.event, action.payload)
-        socket.emit(subscriber.event, action.payload)
-        socket.emit("pong", action.payload)
-      }
-    })
-
-    // if (config.subscribers.includes(action)) {
-    //   console.log("emitting", action.type, action.payload)
-    //   socket.emit(action.payload)
-    // }
-
     return next(action)
   }
 }
