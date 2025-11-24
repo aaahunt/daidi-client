@@ -6,12 +6,13 @@ import Nav from "react-bootstrap/Nav"
 import Container from "react-bootstrap/Container"
 
 import { logout } from "modules/authentication/actions"
-import { isAuthenticatedSelector } from "modules/authentication/selectors"
+import { isAuthenticatedSelector, userSelector } from "modules/authentication/selectors"
 import config from "config"
 
 const Navigation = () => {
   const [expanded, setExpanded] = useState(false)
   const authenticated = useSelector(isAuthenticatedSelector)
+  const user = useSelector(userSelector)
   const dispatch = useDispatch()
 
   const handleLogout = () => {
@@ -53,11 +54,13 @@ const Navigation = () => {
               Rules
             </Link>
           </Nav>
-          <Nav>
-            <Nav.Link href="http://www.aahunt.co.uk/" target="_blank" rel="noreferrer">
-              {config.MESSAGE.CREATOR}
-            </Nav.Link>
-          </Nav>
+          {user && (
+            <Nav>
+              <Nav.Link>
+                {user?.username} / {user?.user_id}
+              </Nav.Link>
+            </Nav>
+          )}
         </Navbar.Collapse>
       </Container>
     </Navbar>

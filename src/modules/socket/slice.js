@@ -10,7 +10,7 @@ export default createSlice({
     socketConnected: (state) => {
       state.connected = true
     },
-    socketDisconnected: (state) => {
+    socketDisconnected: (state, reason) => {
       state.connected = false
     },
     receiveMessage: (state, action) => {

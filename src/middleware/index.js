@@ -10,6 +10,6 @@ const middlewareConfig = (getDefaultMiddleware) =>
     .concat(router)
     .concat(saga)
     .concat(api)
-    .concat(socketMiddleware())
+    .concat(socketMiddleware)
 
 export default middlewareConfig

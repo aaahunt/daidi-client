@@ -7,7 +7,7 @@ import { GameList } from "./GameList"
 import { isAuthenticatedSelector } from "modules/authentication/selectors"
 import { connectedSelector } from "modules/socket/selectors"
 import Loading from "components/control/Loading"
-import { leaveRoom } from "modules/socket/actions"
+import { leaveRoom } from "modules/app/actions"
 
 const Dashboard = () => {
   const dispatch = useDispatch()

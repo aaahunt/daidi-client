@@ -19,11 +19,9 @@ export default createSlice({
       state.error = null
     },
     loginFailure: (state, action) => {
-      console.log("loginFailure", action)
       state.error = action.payload
     },
     logout: (state) => {
-      console.log("logout slice")
       state.token = null
       state.error = null
     },
