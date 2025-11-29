@@ -5,7 +5,7 @@ config.URL = {
   LOGIN: "/login",
   DASHBOARD: "/dashboard",
   REGISTER: "/register",
-  ROOM: "/room",
+  ROOM: "/room/:id",
   RULES: "/rules",
   SERVER: process.env.API_URL,
 }

@@ -1,14 +1,14 @@
 import { io } from "socket.io-client"
 
 import config from "config"
-import { getToken } from "modules/authentication/utils"
+import { getLocalToken } from "modules/authentication/utils"
 
 let socket = null
 
 export function getSocket() {
   if (!socket) {
     socket = io(config.URL.SERVER, {
-      auth: { token: getToken() },
+      auth: { token: getLocalToken() },
     })
   }
   return socket

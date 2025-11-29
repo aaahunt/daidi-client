@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
   ready: false,
+  board: null,
 }
 
 export default createSlice({
@@ -10,6 +11,9 @@ export default createSlice({
   reducers: {
     setReady: (state, action) => {
       state.ready = action.payload
+    },
+    setGameState: (state, action) => {
+      Object.assign(state, action.payload)
     },
   },
 })

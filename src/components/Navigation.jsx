@@ -16,7 +16,6 @@ const Navigation = () => {
   const dispatch = useDispatch()
 
   const handleLogout = () => {
-    console.log("handleLogout")
     setExpanded(false)
     dispatch(logout())
   }
@@ -26,7 +25,7 @@ const Navigation = () => {
       <Container>
         <Navbar.Brand>
           <Link to={config.URL.HOME} onClick={() => setExpanded(false)}>
-            <img src="header-logo.svg" alt="Dai Di" width="70" height="70" />
+            <img src="/header-logo.svg" alt="Dai Di" width="70" height="70" />
           </Link>
         </Navbar.Brand>
         <Navbar.Toggle

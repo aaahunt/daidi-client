@@ -11,7 +11,7 @@ const Home = () => {
     <Container>
       <section className="d-flex align-items-center justify-content-center position-absolute top-50 start-50 translate-middle">
         <div className="d-flex align-items-center flex-column text-center p-3 rounded-0">
-          <img src="dai-di-logo.svg" alt="Dai Di" width="340" height="340" />
+          <img src="/dai-di-logo.svg" alt="Dai Di" width="340" height="340" />
           <div className="vstack gap-2 col-md-5 mx-auto">
             <button onClick={() => navigate(config.URL.LOGIN)} type="button" className="btn btn-danger">
               Login

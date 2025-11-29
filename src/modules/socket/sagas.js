@@ -11,6 +11,6 @@ function handleSocketConnected(action) {
   console.log("🟢 SAGA CONNECTED", action)
 }
 
-function handleSocketDisconnected(action) {
-  console.log("🔴 SAGA DISCONNECTED", action)
+function handleSocketDisconnected(reason) {
+  console.log("🔴 SAGA DISCONNECTED", reason)
 }

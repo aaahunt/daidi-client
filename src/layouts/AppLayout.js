@@ -23,7 +23,7 @@ export default function AppLayout() {
         <Route path={config.URL.LOGIN} element={<Login />} />
         <Route path={config.URL.REGISTER} element={<Register />} />
         <Route path={config.URL.DASHBOARD} element={<Dashboard />} />
-        <Route path={config.URL.ROOM + "/:name"} element={<Room />} />
+        <Route path={config.URL.ROOM} element={<Room />} />
       </Routes>
       <Toaster />
     </>

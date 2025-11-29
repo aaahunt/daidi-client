@@ -1,6 +1,7 @@
 import Emojis from "../notifications/Emojis"
 
 const Player = (props) => {
+    
   return (
     <div id="actions" className="players-cards bg-dark p-2">
       <Emojis opponent={props.opponent.user_id} />

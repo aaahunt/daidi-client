@@ -1,4 +1,4 @@
-import { put, takeEvery, fork, delay, take, race } from "redux-saga/effects"
+import { put, takeEvery, delay, take, race } from "redux-saga/effects"
 import { push as redirect } from "redux-first-history"
 
 import { notifyUser } from "modules/toast/actions"
@@ -13,10 +13,11 @@ import {
   authenticateUserSuccess,
   authenticateUserError,
 } from "./actions"
-import { setToken, getToken, removeToken } from "./utils"
+import { storeTokenLocally, unsetLocalToken, validateLocalToken } from "./utils"
 
 export default function* authSaga() {
-  yield fork(handleInitialRedirect)
+  //   yield fork(onPageLoad)
+  yield takeEvery("@@router/LOCATION_CHANGE", handleLocationChange)
   yield takeEvery(authenticate, loginWorker)
   yield takeEvery(logout.type, logoutWorker)
 }
@@ -37,7 +38,9 @@ function* loginWorker(action) {
       console.log("result.success", result.success.payload.data)
       if (!token) throw new Error("No token in response")
 
-      yield handleLoginSuccess(token)
+      storeTokenLocally(token)
+      yield put(loginSuccess(token))
+      yield put(redirect(config.URL.DASHBOARD))
     } else {
       yield put(loginFailure(result.failure.payload))
     }
@@ -49,23 +52,29 @@ function* loginWorker(action) {
 
 function* logoutWorker() {
   yield delay(10)
-  removeToken()
+  unsetLocalToken()
   yield put(redirect(config.URL.HOME))
 }
 
-function* handleInitialRedirect() {
+function* handleLocationChange(action) {
   yield delay(10)
 
-  const token = getToken()
-  if (token) {
-    yield handleLoginSuccess(token)
-  } else {
-    yield put(redirect(config.URL.LOGIN))
-  }
-}
+  const user = validateLocalToken()
+  const target = action.payload.location.pathname
 
-function* handleLoginSuccess(token) {
-  setToken(token)
-  yield put(loginSuccess(token))
-  yield put(redirect(config.URL.DASHBOARD))
+  console.log("handleLocationChange", target)
+
+  // 1. No token → go to login
+  if (!user && target !== config.URL.LOGIN) {
+    console.log("no token, redirect")
+    yield put(redirect(config.URL.LOGIN))
+    return
+  }
+
+  // 2. If logged in but stuck on login page → go to dashboard
+  if (user && (target === config.URL.LOGIN || target === config.URL.HOME)) {
+    console.log("logged in and on login page, redirecting to dashboard")
+    yield put(redirect(config.URL.DASHBOARD))
+    return
+  }
 }

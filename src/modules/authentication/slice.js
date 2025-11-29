@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { getToken } from "./utils"
+import { getLocalToken } from "./utils"
 
 const initialState = {
-  token: getToken(),
+  token: getLocalToken(),
   loading: false,
   error: null,
 }

@@ -1,13 +1,12 @@
 import { getConnectedSocket } from "modules/socket/client"
 
-import { loginSuccess } from "modules/authentication/actions"
 import { socketConnected, socketDisconnected } from "modules/socket/actions"
+import { getLocalToken } from "modules/authentication/utils"
 
 let socket = null
 
 const socketMiddleware = (store) => (next) => (action) => {
-  // Initialise socket only after login
-  if (action.type === loginSuccess.type && !socket) {
+  if (getLocalToken() && !socket) {
     socket = getConnectedSocket()
 
     const originalOnevent = socket.onevent

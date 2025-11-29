@@ -1,5 +1,5 @@
 import axios from "axios"
-import { getToken } from "modules/authentication/utils"
+import { getLocalToken } from "modules/authentication/utils"
 import { apiCallInProgress } from "modules/api/actions"
 
 const apiMiddleware = (store) => (next) => (action) => {
@@ -9,7 +9,7 @@ const apiMiddleware = (store) => (next) => (action) => {
 
   const { url, method, data, actions } = action.payload.apiCall
 
-  const token = getToken()
+  const token = getLocalToken()
   const headers = {}
   if (token) {
     console.log("adding token", token)
