@@ -2,7 +2,14 @@ import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
   ready: false,
+  inProgress: false,
   board: null,
+  hand: [],
+  selectedCards: [],
+  history: [],
+  errors: [],
+  activePlayer: null,
+  userSeatNumber: null,
 }
 
 export default createSlice({

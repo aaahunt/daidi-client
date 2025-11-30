@@ -56,7 +56,7 @@ const Navigation = () => {
           {user && (
             <Nav>
               <Nav.Link>
-                {user?.username} / {user?.user_id}
+                {user?.username} / {user?.userId}
               </Nav.Link>
             </Nav>
           )}

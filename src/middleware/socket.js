@@ -33,7 +33,7 @@ const socketMiddleware = (store) => (next) => (action) => {
   // If action starts with socket/emit, send to socket.io
   if (socket && action.type.startsWith("emit/")) {
     const emitAction = action.type.split("emit/")[1]
-    console.log(`Emitting ${emitAction} to socket.io`)
+    console.log(`Emitting ${emitAction} to socket.io`, action.payload)
     socket.emit(emitAction, action.payload)
   }
 

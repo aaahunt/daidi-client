@@ -16,7 +16,7 @@ const Online = ({ users, games, handleChallenge, id }) => {
     if (games) {
       users.forEach((user) => {
         games.forEach((game) => {
-          if (game.opponent_id === user.user_id) {
+          if (game.opponent_id === user.userId) {
             user.hasHistory = true
             user.opponent_score = game.opponent_score
             user.our_score = game.our_score
@@ -25,15 +25,13 @@ const Online = ({ users, games, handleChallenge, id }) => {
       })
     }
     options = users.map((user) => (
-      <div key={user.user_id} value={user.user_id}>
-        {user.username}{" "}
-        {user.hasHistory &&
-          "(" + user.our_score + "-" + user.opponent_score + ")"}
+      <div key={user.useuserIdr_id} value={user.userId}>
+        {user.username} {user.hasHistory && "(" + user.our_score + "-" + user.opponent_score + ")"}
         <Button
           size="sm"
           className="ms-1"
           onClick={() => {
-            handleChallenge(user.user_id)
+            handleChallenge(user.userId)
             setShowPanel(false)
           }}
         >
@@ -55,9 +53,7 @@ const Online = ({ users, games, handleChallenge, id }) => {
         </Offcanvas.Header>
         <Offcanvas.Body>
           {!users && <p>{config.MESSAGE.PLAYERS.NONE}</p>}
-          {users && users.length < 1 && (
-            <p>{config.MESSAGE.PLAYERS.ONLY_YOU}</p>
-          )}
+          {users && users.length < 1 && <p>{config.MESSAGE.PLAYERS.ONLY_YOU}</p>}
           {options}
         </Offcanvas.Body>
       </Offcanvas>
