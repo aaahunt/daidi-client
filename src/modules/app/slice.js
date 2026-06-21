@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit"
 const initialState = {
   rooms: [],
   connected: false,
+  currentRoom: null,
 }
 
 export default createSlice({
@@ -14,6 +15,9 @@ export default createSlice({
     },
     setConnected: (state, action) => {
       state.connected = action.payload
+    },
+    setCurrentRoom: (state, action) => {
+      state.currentRoom = action.payload
     },
   },
 })

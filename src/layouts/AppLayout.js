@@ -7,7 +7,7 @@ import Rules from "components/pages/Rules"
 import Login from "components/pages/Login"
 import Register from "components/pages/Register"
 import Dashboard from "components/dashboard/Dashboard"
-import Room from "components/room/Room"
+import Room from "components/game/Room"
 import Navigation from "components/Navigation"
 import Toaster from "components/notifications/Toaster"
 

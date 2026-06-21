@@ -12,6 +12,5 @@ export const authErrorSelector = createSelector(authSelector, (auth) => auth.err
 export const userSelector = createSelector(tokenSelector, (token) => {
   if (!token) return null
   const decoded = jwtDecode(token)
-  console.log("userSelector", decoded)
   return decoded
 })

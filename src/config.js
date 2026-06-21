@@ -15,39 +15,6 @@ config.API_ENDPOINTS = {
   REGISTER: "/register",
 }
 
-config.GAME = {
-  TOP_MULTIPLIER: 3,
-  MIDDLE_MULTIPLIER: 2,
-  BOTTOM_MULTIPLIER: 1,
-  WAIT_AFTER_LOSE: 2000,
-}
-
-config.APP_INIT_STATE = {
-  username: null,
-  userId: null,
-  opponent: null,
-  error: null,
-  challenge: null,
-  message: null,
-}
-
-config.GAME_INIT_STATE = {
-  opponent: null,
-  score: 0,
-  selected: [],
-  sortOrder: "rank",
-  board: null,
-  history: [],
-  winner: null,
-  error: null,
-  emoji: null,
-
-  showRematch: false,
-  showOppLeft: false,
-  oneWaiting: false,
-  pressedOneMore: false,
-}
-
 config.MESSAGE = {
   DECLINE: {
     header: "Declined",

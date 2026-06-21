@@ -30,12 +30,10 @@ const Board = () => {
       <div className="cards-played">
         {isHovered &&
           history &&
-          history.map((hand) => (
-            <div key={hand}>
+          history.map((hand, i) => (
+            <div key={i}>
               {hand &&
-                hand.map((card) => (
-                  <img key={card.value} src={`/cards/${card.display}.svg`} alt={card.display} width="25" />
-                ))}
+                hand.map((card, x) => <img key={x} src={`/cards/${card.display}.svg`} alt={card.display} width="25" />)}
             </div>
           ))}
       </div>

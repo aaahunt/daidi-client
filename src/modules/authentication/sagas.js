@@ -16,7 +16,6 @@ import {
 import { storeTokenLocally, unsetLocalToken, validateLocalToken } from "./utils"
 
 export default function* authSaga() {
-  //   yield fork(onPageLoad)
   yield takeEvery("@@router/LOCATION_CHANGE", handleLocationChange)
   yield takeEvery(authenticate, loginWorker)
   yield takeEvery(logout.type, logoutWorker)
@@ -35,7 +34,6 @@ function* loginWorker(action) {
 
     if (result.success) {
       const { token } = result.success.payload.data
-      console.log("result.success", result.success.payload.data)
       if (!token) throw new Error("No token in response")
 
       storeTokenLocally(token)
@@ -66,14 +64,12 @@ function* handleLocationChange(action) {
 
   // 1. No token → go to login
   if (!user && target !== config.URL.LOGIN) {
-    console.log("no token, redirect")
     yield put(redirect(config.URL.LOGIN))
     return
   }
 
   // 2. If logged in but stuck on login page → go to dashboard
   if (user && (target === config.URL.LOGIN || target === config.URL.HOME)) {
-    console.log("logged in and on login page, redirecting to dashboard")
     yield put(redirect(config.URL.DASHBOARD))
     return
   }
